@@ -5,9 +5,12 @@ import MovieCard from "../Components/MovieCard";
 function Bookedmark() {
   const { movies, toggleBookmark } = useContext(BookmarkContext);
 
-  // Filter only bookmarked movies that are of category "Movie"
+  
   const bookmarkedMovies = movies.filter(
-    (movie) => movie.isBookmarked
+    (movie) => movie.isBookmarked &&  movie.category === "Movie"
+  );
+  const bookmarkedTVSeries = movies.filter(
+    (movie) => movie.isBookmarked &&  movie.category === "TV Series"
   );
 
   return (
@@ -17,10 +20,27 @@ function Bookedmark() {
       </h2>
 
       {bookmarkedMovies.length === 0 ? (
-        <p className="text-gray-400">No bookmarked movies.</p>
+        <p className="text-gray-400">No bookmarked Movie.</p>
       ) : (
         <div className="special-grid">
           {bookmarkedMovies.map((movie, index) => (
+            <MovieCard
+              key={index}
+              movie={movie}
+              onBookmarkToggle={() => toggleBookmark(movie.title)}
+            />
+          ))}
+        </div>
+      )}
+      <h2 className="text-xl md:text-2xl font-semibold text-white mb-4">
+        Bookmarked TV Series
+      </h2>
+
+      {bookmarkedTVSeries.length === 0 ? (
+        <p className="text-gray-400">No bookmarked TV Series.</p>
+      ) : (
+        <div className="special-grid">
+          {bookmarkedTVSeries.map((movie, index) => (
             <MovieCard
               key={index}
               movie={movie}

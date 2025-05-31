@@ -1,13 +1,23 @@
-// src/Context/BookmarkContext.jsx
-import React, { createContext, useContext, useState } from "react";
+
+import React, { createContext, useContext, useState, useEffect } from "react";
 import moviesData from "../data.json";
 
-// Create the context
 const BookmarkContext = createContext();
 
-// Provider component
+const LOCAL_STORAGE_KEY = "bookmarked";
+
+const getStoredMovies = () => {
+  const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+  return stored ? JSON.parse(stored) : moviesData;
+};
+
+
 export const BookmarkProvider = ({ children }) => {
-  const [movies, setMovies] = useState(moviesData);
+  const [movies, setMovies] = useState(getStoredMovies);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(movies));
+  }, [movies]);
 
   const toggleBookmark = (title) => {
     const updatedMovies = movies.map((movie) =>
@@ -25,8 +35,8 @@ export const BookmarkProvider = ({ children }) => {
   );
 };
 
-// Custom hook for easier use
+
 export const useBookmarks = () => useContext(BookmarkContext);
 
-// ✅ Export BookmarkContext if needed directly
+
 export { BookmarkContext };

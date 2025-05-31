@@ -17,18 +17,16 @@ function MainContent() {
 
   return (
     <div className="w-full">
-      {/* Search Input */}
       <div className="mb-6">
         <input
           type="text"
           value={searchTerm}
           onChange={handleSearchChange}
           placeholder="Search for movies or TV series"
-          className="w-4/5 mt-12 p-3 rounded-lg bg-[#161D2F] text-white placeholder-gray-400 focus:outline-none"
+          className="w-11/12 mt-12 p-3 rounded-lg bg-[#161D2F] text-white placeholder-gray-400 focus:outline-none"
         />
       </div>
 
-      {/* Conditional Rendering for Search */}
       {searchTerm ? (
         <div>
           <h2 className="text-xl md:text-2xl font-semibold text-white mt-10 mb-4">
@@ -42,19 +40,19 @@ function MainContent() {
         </div>
       ) : (
         <>
-          {/* Trending Section */}
-          <section className="mb-10">
-            <h2 className="text-xl md:text-2xl font-semibold text-white mb-4">Trending</h2>
-            <div className="w-full overflow-x-auto no-scrollbar">
-              <div className="flex gap-4 w-max">
+          {/* <section className="mb-10">
+            <h2 className="text-xl md:text-2xl font-semibold text-white mb-4">
+              Trending
+            </h2>
+            <div className="w-full">
+              <div className="grid grid-flow-col gap-4 snap-x overflow-x-hidden snap-proximity">
                 {trendingMovies.map((movie, index) => (
                   <TrendingCard key={index} movie={movie} />
                 ))}
               </div>
             </div>
-          </section>
+          </section> */}
 
-          {/* Recommended Section */}
           <section>
             <h2 className="text-xl md:text-2xl font-semibold text-white mb-4">
               Recommended for you
