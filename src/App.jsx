@@ -10,10 +10,13 @@ import TVSeries from "./Pages/TVSeries";
 import Bookedmark from "./Pages/Bookedmark";
 import Nopage from "./Pages/Nopage";
 
+import ScrollToTop from "./Components/ScrollToTop"; 
+
 function App() {
   return (
     <BookmarkProvider>
       <Router>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<MainContent />} />

@@ -23,7 +23,7 @@ function MainContent() {
           value={searchTerm}
           onChange={handleSearchChange}
           placeholder="Search for movies or TV series"
-          className="w-11/12 mt-12 p-3 rounded-lg bg-[#161D2F] text-white placeholder-gray-400 focus:outline-none"
+          className="w-full lg:mt-12 p-3 rounded-lg bg-[#161D2F] text-white placeholder-gray-400 focus:outline-none"
         />
       </div>
 
@@ -40,22 +40,22 @@ function MainContent() {
         </div>
       ) : (
         <>
-          {/* <section className="mb-10">
-            <h2 className="text-xl md:text-2xl font-semibold text-white mb-4">
+          <section className="mb-10 overflow-hidden">
+            <h2 className="text-xl md:text-2xl font-semibold text-white py-4">
               Trending
             </h2>
-            <div className="w-full">
-              <div className="grid grid-flow-col gap-4 snap-x overflow-x-hidden snap-proximity">
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory scroll-smooth">
+              <div className="flex gap-4 snap-x snap-mandatory" style={{ maxWidth: `${trendingMovies.length * 200}px` }}>
                 {trendingMovies.map((movie, index) => (
-                  <TrendingCard key={index} movie={movie} />
+                  <TrendingCard key={index} movie={movie} className="snap-center" />
                 ))}
               </div>
             </div>
-          </section> */}
+          </section>
 
           <section>
-            <h2 className="text-xl md:text-2xl font-semibold text-white mb-4">
-              Recommended for you
+            <h2 className="text-xl md:text-2xl font-semibold text-white py-4">
+              All Movies and TV Series
             </h2>
             <div className="special-grid">
               {movies.map((movie, index) => (

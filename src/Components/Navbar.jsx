@@ -3,6 +3,7 @@ import { NavLink } from "react-router-dom";
 import { Home, Bookmark, Film, Tv } from "lucide-react"; // optional icons
 import { useAuth } from "../Context/AuthContext";
 import SignInButton from "./SignIn";
+import { Link } from "react-router-dom";
 
 function Navbar() {
   const { currentUser, logout } = useAuth();
@@ -13,16 +14,16 @@ function Navbar() {
   }
 
   return (
-    <div className="sticky top-0 h-auto lg:h-screen p-0 md:p-4 z-50">
-      <div className="bg-[#19213c] h-full rounded-none md:rounded-md px-6 py-4 flex lg:flex-col  justify-between items-center">
+    <div className="sticky top-0 h-auto lg:h-screen py-4 md:p-4 z-50">
+      <div className="bg-[#19213c] h-full  rounded-md px-6 py-4 flex lg:flex-col  justify-between items-center">
         {/* Logo */}
-        <div className="grid gap-6 items-center">
+        <Link to="/" className="grid gap-6 items-center">
           <img
             src="/assets/svg_files/logo.svg"
             alt="Logo"
             className="w-8 h-8"
           />
-        </div>
+        </Link>
 
         {/* Nav Links */}
         <div className="flex flex-row lg:flex-col items-center gap-6 mt-6">

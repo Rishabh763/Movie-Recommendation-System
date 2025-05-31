@@ -5,7 +5,7 @@ function TrendingCard({ movie }) {
   const { toggleBookmark } = useBookmarks();
 
   return (
-    <div className="relative isolate snap-center min-w-[240px] md:min-w-[470px] h-36 md:h-60 rounded-md ">
+    <div className="relative snap-start min-w-[240px] md:min-w-[470px] h-36 md:h-60 rounded-md overflow-hidden">
       <picture>
         <source media="(min-width: 768px)" srcSet={movie.thumbnail.trending.large} />
         <img src={movie.thumbnail.trending.small} alt={movie.title} className="w-full h-full object-cover" />
@@ -25,8 +25,23 @@ function TrendingCard({ movie }) {
         />
       </button>
 
-      <div className="absolute bottom-2 left-2 text-white text-sm">
-        <p className="font-medium">{movie.title}</p>
+      <div className="absolute bottom-4 left-4 text-white ">
+        <div className="text-slate-300 text-base flex gap-2">
+          <span>{movie.year}</span>
+          <span>•</span>
+          <span className="grid place-content-center">
+            <img
+              src={`/assets/svg_files/icon-category-${movie.category
+                .split(" ")[0]
+                .toLowerCase()}.svg`}
+              alt={`${movie.category}-img`}
+            />
+          </span>
+          <span>{movie.category}</span>
+          <span>•</span>
+          <span>{movie.rating}</span>
+        </div>
+        <h3 className="text-white font-semibold text-xl mt-2">{movie.title}</h3>
       </div>
     </div>
   );
