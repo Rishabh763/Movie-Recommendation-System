@@ -5,7 +5,7 @@ function TrendingCard({ movie }) {
   const { toggleBookmark } = useBookmarks();
 
   return (
-    <div className="relative snap-start min-w-[240px] md:min-w-[470px] h-36 md:h-60 rounded-md overflow-hidden">
+    <div className="relative snap-start min-w-[400px] md:min-w-[470px]  rounded-md overflow-hidden">
       <picture>
         <source media="(min-width: 768px)" srcSet={movie.thumbnail.trending.large} />
         <img src={movie.thumbnail.trending.small} alt={movie.title} className="w-full h-full object-cover" />

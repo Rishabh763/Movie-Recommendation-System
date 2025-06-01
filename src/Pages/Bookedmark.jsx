@@ -14,8 +14,8 @@ function Bookedmark() {
   );
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl md:text-2xl font-semibold text-white p-4">
+    <div className="md:p-4">
+      <h2 className="text-2xl md:text-4xl font-semibold text-white py-4">
         Bookmarked Movies
       </h2>
 
@@ -32,7 +32,7 @@ function Bookedmark() {
           ))}
         </div>
       )}
-      <h2 className="text-xl md:text-2xl font-semibold text-white p-4">
+      <h2 className="text-2xl md:text-4xl font-semibold text-white py-4">
         Bookmarked TV Series
       </h2>
 

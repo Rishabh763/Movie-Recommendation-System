@@ -84,7 +84,7 @@ select {
 
 .content-grid {
   --padding-inline: 1rem;
-  --content-max-width: 1400px;
+  --content-max-width: 1800px;
   --breakout-max-width: 1920px;
 
   --breakout-size: calc(calc(var(--breakout-max-width) - var(--content-max-width)) / 2);
@@ -114,7 +114,7 @@ select {
 
 .special-grid{
   display: grid;
-  grid-template-columns: repeat(auto-fill,minmax(min(100%,280px),1fr));
+  grid-template-columns: repeat(auto-fill,minmax(min(100%,300px),1fr));
   gap: 1.5rem;
 }
 
