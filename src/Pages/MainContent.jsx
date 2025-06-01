@@ -16,34 +16,41 @@ function MainContent() {
   }, [movies]);
 
   const handleFilterChange = (value) => {
-  if (value === "") {
-    setFilteredMovies(movies); // reset to original
-    return;
-  }
+    if (value === "") {
+      setFilteredMovies(movies); // reset to original
+      return;
+    }
 
-  let sorted = [...movies];
+    let sorted = [...movies];
 
-  switch (value) {
-    case "alphabetical":
-      sorted.sort((a, b) => a.title.localeCompare(b.title));
-      break;
-    case "time":
-      sorted.sort((a, b) => b.year - a.year); // Newest first
-      break;
-    case "movie":
-      sorted = sorted.filter((m) => m.category === "Movie");
-      break;
-    case "tv":
-      sorted = sorted.filter((m) => m.category === "TV Series");
-      break;
-    default:
-      break;
-  }
+    switch (value) {
+      case "alphabetical":
+        sorted.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case "time":
+        sorted.sort((a, b) => b.year - a.year); // Newest first
+        break;
+      case "movie":
+        sorted = sorted.filter((m) => m.category === "Movie");
+        break;
+      case "tv":
+        sorted = sorted.filter((m) => m.category === "TV Series");
+        break;
+      case "PG":
+        sorted = sorted.filter((m) => m.rating === "PG");
+        break;
+      case "18+":
+        sorted = sorted.filter((m) => m.rating === "18+");
+        break;
+      case "E":
+        sorted = sorted.filter((m) => m.rating === "E");
+        break;
+      default:
+        break;
+    }
 
-  setFilteredMovies(sorted);
-};
-
-
+    setFilteredMovies(sorted);
+  };
 
   const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
@@ -115,6 +122,11 @@ function MainContent() {
                   <option value="time">Time</option>
                   <option value="movie">Movies</option>
                   <option value="tv">TV Series</option>
+                  <optgroup label="Rating">
+                    <option value="PG">PG</option>
+                    <option value="18+">18+</option>
+                    <option value="E">E</option>
+                  </optgroup>
                 </select>
               </div>
 
