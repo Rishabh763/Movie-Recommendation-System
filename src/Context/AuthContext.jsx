@@ -36,11 +36,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setBookmarks([]);
-    setRatings({});
-    return signOut(auth);
-  };
+  const logout = async () => {
+  if (currentUser) {
+    localStorage.removeItem(`movies_${currentUser.uid}`);
+    localStorage.removeItem(`movies_${currentUser.uid}_timestamp`);
+  }
+  setBookmarks([]);
+  setRatings({});
+  await signOut(auth);
+};
+
 
   // 📥 Load user Firestore data after login
   const fetchUserData = async (uid) => {

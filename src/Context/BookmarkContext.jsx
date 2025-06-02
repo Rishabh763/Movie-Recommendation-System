@@ -20,65 +20,50 @@ export const BookmarkProvider = ({ children }) => {
     return copy;
   };
 
-  useEffect(() => {
-    const fetchMovies = async () => {
-      const userDocRef = currentUser ? doc(db, "users", currentUser.uid) : null;
+ useEffect(() => {
+  const fetchMovies = async () => {
+    const userDocRef = currentUser ? doc(db, "users", currentUser.uid) : null;
 
-      if (currentUser) {
-        // ✅ Try localStorage first
-        const local = localStorage.getItem(`movies_${currentUser.uid}`);
-        if (local) {
-          setMovies(JSON.parse(local));
-          return;
-        }
+    if (currentUser) {
+      const local = localStorage.getItem(`movies_${currentUser.uid}`);
+      const localTimestamp = localStorage.getItem(`movies_${currentUser.uid}_timestamp`);
+      const isExpired =
+        localTimestamp && Date.now() - parseInt(localTimestamp) > 24 * 60 * 60 * 1000;
 
-        try {
-          const docSnap = await getDoc(userDocRef);
+      if (local && !isExpired) {
+        setMovies(JSON.parse(local));
+        return;
+      }
 
-          if (docSnap.exists()) {
-            // 🔁 Existing user: no shuffle
-            const userData = docSnap.data();
-            const initialized = moviesData.map((movie) => ({
-              ...movie,
-              isBookmarked: userData.bookmarks?.includes(movie.id) || false,
-              userRating: userData.ratings?.[movie.id] || null,
-            }));
-            setMovies(initialized);
-            localStorage.setItem(
-              `movies_${currentUser.uid}`,
-              JSON.stringify(initialized)
-            );
-          } else {
-            // 🆕 New user: shuffle movies
-            const shuffled = shuffleArray(moviesData).map((movie) => ({
-              ...movie,
-              isBookmarked: false,
-              userRating: null,
-            }));
-
-            setMovies(shuffled);
-            localStorage.setItem(
-              `movies_${currentUser.uid}`,
-              JSON.stringify(shuffled)
-            );
-
-            // Store only bookmarks and ratings in Firestore
-            await setDoc(userDocRef, {
-              bookmarks: [],
-              ratings: {},
-            });
-          }
-        } catch (err) {
-          console.error("Firestore fetch failed:", err);
-          const fallback = moviesData.map((movie) => ({
+      try {
+        const docSnap = await getDoc(userDocRef);
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          const initialized = moviesData.map((movie) => ({
+            ...movie,
+            isBookmarked: userData.bookmarks?.includes(movie.id) || false,
+            userRating: userData.ratings?.[movie.id] || null,
+          }));
+          setMovies(initialized);
+          localStorage.setItem(`movies_${currentUser.uid}`, JSON.stringify(initialized));
+          localStorage.setItem(`movies_${currentUser.uid}_timestamp`, Date.now().toString());
+        } else {
+          const shuffled = shuffleArray(moviesData).map((movie) => ({
             ...movie,
             isBookmarked: false,
             userRating: null,
           }));
-          setMovies(fallback);
+          setMovies(shuffled);
+          localStorage.setItem(`movies_${currentUser.uid}`, JSON.stringify(shuffled));
+          localStorage.setItem(`movies_${currentUser.uid}_timestamp`, Date.now().toString());
+
+          await setDoc(userDocRef, {
+            bookmarks: [],
+            ratings: {},
+          });
         }
-      } else {
-        // Not logged in: no shuffle
+      } catch (err) {
+        console.error("Firestore fetch failed:", err);
         const fallback = moviesData.map((movie) => ({
           ...movie,
           isBookmarked: false,
@@ -86,10 +71,19 @@ export const BookmarkProvider = ({ children }) => {
         }));
         setMovies(fallback);
       }
-    };
+    } else {
+      const fallback = moviesData.map((movie) => ({
+        ...movie,
+        isBookmarked: false,
+        userRating: null,
+      }));
+      setMovies(fallback);
+    }
+  };
 
-    fetchMovies();
-  }, [currentUser]);
+  fetchMovies();
+}, [currentUser]);
+
 
   // Toggle bookmark
   const toggleBookmark = async (title) => {
