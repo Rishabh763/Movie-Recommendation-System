@@ -52,9 +52,9 @@ src/
 
 ## 📸 Screenshots
 
-| Home Page | Movie Card | Rating |
-|----------|------------|--------|
-| ![Home](./screenshots/home.png) | ![Card](./screenshots/card.png) | ![Rating](./screenshots/rating.png) |
+| Home Page | Movie Card |
+|----------|------------|
+| ![Home](./screenshots/home.png) | ![Card](./screenshots/card.png) | 
 
 ---
 
@@ -92,12 +92,12 @@ const firebaseConfig = {
 
 npm run dev
 
-##🔄 Future Improvements
-- **Add real-time recommendations using Flask backend or ML model
-- **Search and filter functionality by genre/year/trending
-- **Admin dashboard to manage movie data
-- **User analytics dashboard (watch history, rating behavior)
+## 🔄 Future Improvements
+- Add real-time recommendations using Flask backend or ML model
+- Search and filter functionality by genre/year/trending
+- Admin dashboard to manage movie data
+- User analytics dashboard (watch history, rating behavior)
 
-##✨ Credits
+## ✨ Credits
 Created by Rishabh Singh
 B.Tech CSE(ICB) @ D.J. Sanghvi College of Engineering
