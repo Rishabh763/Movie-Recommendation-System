@@ -5,7 +5,15 @@ import { motion } from "framer-motion";
 
 const MovieCard = ({ movie }) => {
   const { toggleBookmark, rateMovie } = useBookmarks();
-  const { title, year, category, rating, thumbnail, isBookmarked, userRating = 0 } = movie;
+  const {
+    title,
+    year,
+    category,
+    rating,
+    thumbnail,
+    isBookmarked,
+    userRating = 0,
+  } = movie;
 
   const handleRating = (ratingValue) => {
     rateMovie(title, ratingValue);
@@ -20,9 +28,9 @@ const MovieCard = ({ movie }) => {
       transition={{ duration: 0.3 }}
       className="relative rounded-lg shadow-lg z-10"
     >
-      <picture className="rounded-lg overflow-hidden">
-        <source media="(min-width: 1024px)" srcSet={thumbnail.regular.large} />
-        <source media="(min-width: 640px)" srcSet={thumbnail.regular.medium} />
+      <picture className="rounded-lg overflow-hidden" loading="lazy">
+        {/* <source media="(min-width: 1024px)" srcSet={thumbnail.regular.large} /> */}
+        {/* <source media="(min-width: 640px)" srcSet={thumbnail.regular.medium} /> */}
         <img
           src={thumbnail.regular.small}
           alt={title}
@@ -51,15 +59,21 @@ const MovieCard = ({ movie }) => {
 
         <div className="flex gap-1 mt-2">
           {[1, 2, 3, 4, 5].map((star) => (
-            <Star
+            <motion.div
               key={star}
-              size={20}
-              className={`cursor-pointer transition-colors ${
-                userRating >= star ? "text-yellow-400" : "text-gray-500"
-              }`}
-              onClick={() => handleRating(star)}
-              fill={userRating >= star ? "currentColor" : "none"}
-            />
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <Star
+                size={20}
+                className={`cursor-pointer transition-colors ${
+                  userRating >= star ? "text-yellow-400" : "text-gray-500"
+                }`}
+                onClick={() => handleRating(star)}
+                fill={userRating >= star ? "currentColor" : "none"}
+              />
+            </motion.div>
           ))}
         </div>
       </div>
@@ -70,7 +84,10 @@ const MovieCard = ({ movie }) => {
         onClick={() => toggleBookmark(title)}
       >
         {isBookmarked ? (
-          <img src="/assets/svg_files/icon-bookmark-full.svg" alt="Bookmarked" />
+          <img
+            src="/assets/svg_files/icon-bookmark-full.svg"
+            alt="Bookmarked"
+          />
         ) : (
           <img src="/assets/svg_files/icon-bookmark-empty.svg" alt="Bookmark" />
         )}

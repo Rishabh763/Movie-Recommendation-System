@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, lazy } from "react";
 import { BookmarkContext } from "../Context/BookmarkContext";
 import MovieCard from "../Components/MovieCard";
 import TrendingCard from "../Components/TrendingCard";
@@ -77,7 +77,7 @@ function MainContent() {
             </h2>
             <div className="special-grid">
               {filteredMovies.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} />
+                <MovieCard key={movie.id} movie={movie}  />
               ))}
             </div>
           </div>
@@ -125,7 +125,7 @@ function MainContent() {
                 </select>
               </div>
 
-              <div className="special-grid">
+              <div className="special-grid" >
                 {filteredMovies.map((movie) => (
                   <MovieCard key={movie.id} movie={movie} />
                 ))}

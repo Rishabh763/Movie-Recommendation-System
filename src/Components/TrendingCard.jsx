@@ -15,7 +15,7 @@ function TrendingCard({ movie }) {
       className="relative snap-start min-w-[90%] sm:min-w-[600px] rounded-xl overflow-hidden"
     >
       <picture>
-        <source media="(min-width: 768px)" srcSet={movie.thumbnail.trending.large} />
+        <source media="(min-width: 1024px)" srcSet={movie.thumbnail.trending.large} />
         <img
           src={movie.thumbnail.trending.small}
           alt={movie.title}
