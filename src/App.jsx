@@ -9,8 +9,8 @@ import Movies from "./Pages/Movies";
 import TVSeries from "./Pages/TVSeries";
 import Bookedmark from "./Pages/Bookedmark";
 import Nopage from "./Pages/Nopage";
-
 import ScrollToTop from "./Components/ScrollToTop"; 
+import Recommendation from "./Pages/Recommendation";
 
 function App() {
   return (
@@ -23,6 +23,7 @@ function App() {
             <Route path="Movies" element={<Movies />} />
             <Route path="TVSeries" element={<TVSeries />} />
             <Route path="Bookmarked" element={<Bookedmark />} />
+            <Route path="Recommendations" element={<Recommendation />} />
             <Route path="*" element={<Nopage />} />
           </Route>
         </Routes>

@@ -1,24 +1,32 @@
 import React from "react";
 import { useBookmarks } from "../Context/BookmarkContext";
 import { Star } from "lucide-react";
+import { motion } from "framer-motion";
 
 const MovieCard = ({ movie }) => {
-  const { toggleBookmark, rateMovie } = useBookmarks(); // <-- new function
+  const { toggleBookmark, rateMovie } = useBookmarks();
   const { title, year, category, rating, thumbnail, isBookmarked, userRating = 0 } = movie;
 
   const handleRating = (ratingValue) => {
-    rateMovie(title, ratingValue); // Update userRating in context
+    rateMovie(title, ratingValue);
   };
 
   return (
-    <div className="relative overflow-hidden shadow-lg z-10">
-      <picture>
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.3 }}
+      className="relative rounded-lg shadow-lg z-10"
+    >
+      <picture className="rounded-lg overflow-hidden">
         <source media="(min-width: 1024px)" srcSet={thumbnail.regular.large} />
         <source media="(min-width: 640px)" srcSet={thumbnail.regular.medium} />
         <img
           src={thumbnail.regular.small}
           alt={title}
-          className="w-full aspect-video object-cover rounded-lg"
+          className="w-full aspect-video object-cover hover:scale-105 transition duration-200"
         />
       </picture>
 
@@ -41,7 +49,6 @@ const MovieCard = ({ movie }) => {
 
         <h3 className="text-white font-semibold text-lg mt-1">{title}</h3>
 
-        
         <div className="flex gap-1 mt-2">
           {[1, 2, 3, 4, 5].map((star) => (
             <Star
@@ -68,7 +75,7 @@ const MovieCard = ({ movie }) => {
           <img src="/assets/svg_files/icon-bookmark-empty.svg" alt="Bookmark" />
         )}
       </button>
-    </div>
+    </motion.div>
   );
 };
 

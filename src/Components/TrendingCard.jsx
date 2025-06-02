@@ -1,19 +1,31 @@
 import React from "react";
 import { useBookmarks } from "../Context/BookmarkContext";
+import { motion } from "framer-motion";
 
 function TrendingCard({ movie }) {
   const { toggleBookmark } = useBookmarks();
 
   return (
-    <div className="relative snap-start min-w-[400px] md:min-w-[470px]  rounded-md overflow-hidden">
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 60, scale: 0.8 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 30, scale: 0.95 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="relative snap-start min-w-[90%] sm:min-w-[600px] rounded-xl overflow-hidden"
+    >
       <picture>
         <source media="(min-width: 768px)" srcSet={movie.thumbnail.trending.large} />
-        <img src={movie.thumbnail.trending.small} alt={movie.title} className="w-full h-full object-cover" />
+        <img
+          src={movie.thumbnail.trending.small}
+          alt={movie.title}
+          className="w-full h-full object-cover transition-transform duration-500 ease-in-out"
+        />
       </picture>
 
       <button
         onClick={() => toggleBookmark(movie.title)}
-        className="absolute top-2 right-2 bg-slate-600/40 p-2 rounded-full cursor-pointer"
+        className="absolute top-2 right-2 bg-slate-600/40 p-2 rounded-full cursor-pointer z-10"
       >
         <img
           src={
@@ -25,8 +37,8 @@ function TrendingCard({ movie }) {
         />
       </button>
 
-      <div className="absolute bottom-4 left-4 text-white ">
-        <div className="text-slate-300 text-base flex gap-2">
+      <div className="absolute bottom-4 left-4 text-white backdrop-blur-sm bg-black/30 p-2 rounded-md">
+        <div className="text-slate-300 text-base flex gap-2 flex-wrap items-center">
           <span>{movie.year}</span>
           <span>•</span>
           <span className="grid place-content-center">
@@ -35,6 +47,7 @@ function TrendingCard({ movie }) {
                 .split(" ")[0]
                 .toLowerCase()}.svg`}
               alt={`${movie.category}-img`}
+              className="w-4 h-4"
             />
           </span>
           <span>{movie.category}</span>
@@ -43,7 +56,7 @@ function TrendingCard({ movie }) {
         </div>
         <h3 className="text-white font-semibold text-xl mt-2">{movie.title}</h3>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

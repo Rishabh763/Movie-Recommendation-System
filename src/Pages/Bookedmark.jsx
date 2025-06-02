@@ -1,16 +1,16 @@
 import React, { useContext } from "react";
 import { BookmarkContext } from "../Context/BookmarkContext";
 import MovieCard from "../Components/MovieCard";
+import { AnimatePresence } from "framer-motion";
 
-function Bookedmark() {
+function Bookmarked() {
   const { movies, toggleBookmark } = useContext(BookmarkContext);
 
-  
   const bookmarkedMovies = movies.filter(
-    (movie) => movie.isBookmarked &&  movie.category === "Movie"
+    (movie) => movie.isBookmarked && movie.category === "Movie"
   );
   const bookmarkedTVSeries = movies.filter(
-    (movie) => movie.isBookmarked &&  movie.category === "TV Series"
+    (movie) => movie.isBookmarked && movie.category === "TV Series"
   );
 
   return (
@@ -23,15 +23,14 @@ function Bookedmark() {
         <p className="text-gray-400">No bookmarked Movie.</p>
       ) : (
         <div className="special-grid">
-          {bookmarkedMovies.map((movie, index) => (
-            <MovieCard
-              key={index}
-              movie={movie}
-              onBookmarkToggle={() => toggleBookmark(movie.title)}
-            />
-          ))}
+          <AnimatePresence>
+            {bookmarkedMovies.map((movie) => (
+              <MovieCard key={movie.title} movie={movie} />
+            ))}
+          </AnimatePresence>
         </div>
       )}
+
       <h2 className="text-2xl md:text-4xl font-semibold text-white py-4">
         Bookmarked TV Series
       </h2>
@@ -40,17 +39,15 @@ function Bookedmark() {
         <p className="text-gray-400">No bookmarked TV Series.</p>
       ) : (
         <div className="special-grid">
-          {bookmarkedTVSeries.map((movie, index) => (
-            <MovieCard
-              key={index}
-              movie={movie}
-              onBookmarkToggle={() => toggleBookmark(movie.title)}
-            />
-          ))}
+          <AnimatePresence>
+            {bookmarkedTVSeries.map((movie) => (
+              <MovieCard key={movie.title} movie={movie} />
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>
   );
 }
 
-export default Bookedmark;
+export default Bookmarked;

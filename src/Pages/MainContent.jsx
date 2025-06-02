@@ -10,53 +10,48 @@ function MainContent() {
   const { movies } = useContext(BookmarkContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredMovies, setFilteredMovies] = useState([]);
-
-  useEffect(() => {
-    setFilteredMovies(movies); // initial set
-  }, [movies]);
+  const [filterValue, setFilterValue] = useState("");
 
   const handleFilterChange = (value) => {
-    if (value === "") {
-      setFilteredMovies(movies); // reset to original
-      return;
-    }
+    setFilterValue(value);
+  };
 
-    let sorted = [...movies];
+  const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-    switch (value) {
+  useEffect(() => {
+    let updated = [...movies];
+
+    switch (filterValue) {
       case "alphabetical":
-        sorted.sort((a, b) => a.title.localeCompare(b.title));
+        updated.sort((a, b) => a.title.localeCompare(b.title));
         break;
       case "time":
-        sorted.sort((a, b) => b.year - a.year); // Newest first
+        updated.sort((a, b) => b.year - a.year);
         break;
       case "movie":
-        sorted = sorted.filter((m) => m.category === "Movie");
+        updated = updated.filter((m) => m.category === "Movie");
         break;
       case "tv":
-        sorted = sorted.filter((m) => m.category === "TV Series");
+        updated = updated.filter((m) => m.category === "TV Series");
         break;
       case "PG":
-        sorted = sorted.filter((m) => m.rating === "PG");
-        break;
       case "18+":
-        sorted = sorted.filter((m) => m.rating === "18+");
-        break;
       case "E":
-        sorted = sorted.filter((m) => m.rating === "E");
+        updated = updated.filter((m) => m.rating === filterValue);
         break;
       default:
         break;
     }
 
-    setFilteredMovies(sorted);
-  };
+    // Apply search
+    if (searchTerm.trim() !== "") {
+      updated = updated.filter((movie) =>
+        movie.title.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
 
-  const handleSearchChange = (e) => setSearchTerm(e.target.value);
-
-  const SearchedMovies = movies.filter((movie) =>
-    movie.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    setFilteredMovies(updated);
+  }, [movies, filterValue, searchTerm]);
 
   const trendingMovies = movies.filter((movie) => movie.isTrending);
 
@@ -75,14 +70,14 @@ function MainContent() {
           />
         </div>
 
-        {searchTerm ? (
+        {searchTerm.trim() !== "" ? (
           <div>
             <h2 className="text-xl md:text-2xl font-semibold text-white mt-10 mb-4">
-              Found {SearchedMovies.length} results for '{searchTerm}'
+              Found {filteredMovies.length} results for '{searchTerm}'
             </h2>
             <div className="special-grid">
-              {SearchedMovies.map((movie, index) => (
-                <MovieCard key={index} movie={movie} />
+              {filteredMovies.map((movie) => (
+                <MovieCard key={movie.id} movie={movie} />
               ))}
             </div>
           </div>
@@ -92,7 +87,7 @@ function MainContent() {
               <h2 className="text-2xl md:text-4xl font-semibold text-white py-4">
                 Trending
               </h2>
-              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory scroll-smooth">
+              <div className="flex gap-4 overflow-x-scroll snap-x snap-mandatory pb-4 scrollbar-hide scroll-smooth">
                 <div
                   className="flex gap-4 snap-x snap-mandatory "
                   style={{ maxWidth: `${trendingMovies.length * 200}px` }}

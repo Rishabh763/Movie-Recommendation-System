@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Home, Bookmark, Film, Tv } from "lucide-react"; // optional icons
+import { Home, Bookmark, Film, Tv } from "lucide-react";
 import { useAuth } from "../Context/AuthContext";
 import LoginModal from "../Components/Login";
 import { Link } from "react-router-dom";
-import { CircleUserRound } from 'lucide-react';
+import { CircleUserRound } from "lucide-react";
+import { Wand } from "lucide-react";
+import SidebarIcon from "../Components/SidebarIcon";
 
 function Navbar() {
   const { currentUser, logout } = useAuth();
@@ -12,7 +14,7 @@ function Navbar() {
 
   const handletoggle = () => {
     setToggle(!toggle);
-  }
+  };
 
   return (
     <div className="sticky top-0 h-auto lg:h-screen py-4 md:p-4 z-50">
@@ -27,17 +29,16 @@ function Navbar() {
         </Link>
 
         {/* Nav Links */}
-        <div className="flex flex-row lg:flex-col items-center gap-6 lg:mt-6">
-          <NavLink
-            to="/"
-            className={({ isActive }) =>
-              `text-white ${isActive ? "opacity-100" : "opacity-50"}`
-            }
-          >
-            <Home />
-          </NavLink>
+        <div className=" flex flex-row lg:flex-col items-center gap-6 lg:mt-6">
+          <SidebarIcon to="/" Icon={Home} label="Home" />
+          <SidebarIcon
+            to="/Recommendations"
+            Icon={Wand}
+            label="Recommendations"
+          />
+          <SidebarIcon to="/Bookmarked" Icon={Bookmark} label="Bookmarked" />
 
-          <NavLink
+          {/* <NavLink
             to="/Movies"
             className={({ isActive }) =>
               `text-white ${isActive ? "opacity-100" : "opacity-50"}`
@@ -53,24 +54,21 @@ function Navbar() {
             }
           >
             <Tv />
-          </NavLink>
-
-          <NavLink
-            to="/Bookmarked"
-            className={({ isActive }) =>
-              `text-white ${isActive ? "opacity-100" : "opacity-50"}`
-            }
-          >
-            <Bookmark />
-          </NavLink>
+          </NavLink> */}
         </div>
 
         {/* User Avatar */}
         <div className="lg:mt-6 relative z-50">
           <button onClick={handletoggle} className=" aspect-square">
-            <CircleUserRound  className="size-8 md:size-12"  strokeWidth={1}/>
+            <CircleUserRound className="size-8 md:size-12" strokeWidth={1} />
           </button>
-          <div  className={ toggle ? "block absolute lg:top-1/2 lg:left-[110%] top-[110%] left-1/2 -translate-x-1/2 lg:translate-x-0 lg:-translate-y-1/2 ": "hidden"} >
+          <div
+            className={
+              toggle
+                ? "block absolute lg:top-1/2 lg:left-[110%] top-[110%] left-1/2 -translate-x-1/2 lg:translate-x-0 lg:-translate-y-1/2 "
+                : "hidden"
+            }
+          >
             {currentUser ? (
               <div className="flex items-center gap-4">
                 <button
@@ -81,7 +79,7 @@ function Navbar() {
                 </button>
               </div>
             ) : (
-               <LoginModal />
+              <LoginModal />
             )}
           </div>
         </div>
