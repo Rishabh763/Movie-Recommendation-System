@@ -3,7 +3,6 @@ import { BookmarkContext } from "../Context/BookmarkContext";
 import MovieCard from "../Components/MovieCard";
 import TrendingCard from "../Components/TrendingCard";
 import { useAuth } from "../Context/AuthContext";
-import LoginModal from "../Components/Login";
 
 function MainContent() {
   const { currentUser } = useAuth();
@@ -57,7 +56,7 @@ function MainContent() {
 
   return (
     <div className="relative w-full">
-      {!currentUser && <LoginModal />}
+      
 
       <div className={`${!currentUser ? "pointer-events-none blur-sm" : ""}`}>
         <div className="mb-6">

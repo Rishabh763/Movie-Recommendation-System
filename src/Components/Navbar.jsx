@@ -17,7 +17,7 @@ function Navbar() {
   };
 
   return (
-    <div className="sticky top-0 h-auto lg:h-screen py-4 md:p-4 z-50">
+    <div className="sticky top-0 h-auto lg:h-screen py-4 md:p-4 z-40">
       <div className="bg-[#19213c] h-full  rounded-md px-3 py-2 md:px-6 md:py-4 flex lg:flex-col  justify-between items-center">
         {/* Logo */}
         <Link to="/" className="grid gap-6 items-center">
