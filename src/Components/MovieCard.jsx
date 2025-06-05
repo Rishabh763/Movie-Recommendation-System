@@ -1,6 +1,6 @@
 import React from "react";
 import { useBookmarks } from "../Context/BookmarkContext";
-import { Star } from "lucide-react";
+import { Star, Trash } from "lucide-react";
 import { motion } from "framer-motion";
 
 const MovieCard = ({ movie }) => {
@@ -57,7 +57,7 @@ const MovieCard = ({ movie }) => {
 
         <h3 className="text-white font-semibold text-lg mt-1">{title}</h3>
 
-        <div className="flex gap-1 mt-2">
+        <div className="flex items-center gap-1 mt-2">
           {[1, 2, 3, 4, 5].map((star) => (
             <motion.div
               key={star}
@@ -75,6 +75,20 @@ const MovieCard = ({ movie }) => {
               />
             </motion.div>
           ))}
+
+          {userRating !== null && (
+            <motion.div
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <Trash
+                size={18}
+                className="ml-2 text-red-400 cursor-pointer hover:text-red-300"
+                onClick={() => handleRating(null)}
+              />
+            </motion.div>
+          )}
         </div>
       </div>
 
