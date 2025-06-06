@@ -1,72 +1,80 @@
+
 # 🎬 Movie Recommendation Web App
 
-A personalized movie recommendation web application built using **React**, **Tailwind CSS**, and **Firebase**. Users can sign in via Google, rate movies on a 5-star scale, bookmark favorites, and receive tailored recommendations based on their preferences.
+A personalized movie recommendation web application built using **React**, **Tailwind CSS**, **Flask**, and **Firebase**. Users can sign in via Google, rate movies on a 5-star scale, bookmark favorites, and receive tailored recommendations powered by a deployed Flask backend using multiple recommendation models.
 
 ---
 
 ## 🚀 Features
 
-- 🔐 **Google Sign-In** with Firebase Authentication
-- 🎥 **Movie Catalog** loaded from JSON with responsive thumbnails
-- ⭐ **5-Star Rating System** for each movie
-- 🔖 **Bookmark Movies** for later viewing
-- 🔄 **Randomized Movie Order** per user to ensure fair exposure
-- 💾 **Persistent Storage** using Firestore and LocalStorage
-- 🎨 **Modern UI** using Tailwind CSS and Lucide Icons
+- 🔐 **Google Sign-In** with Firebase Authentication  
+- 🎥 **Movie Catalog** loaded from JSON with responsive thumbnails  
+- ⭐ **5-Star Rating System** for each movie  
+- 🔖 **Bookmark Movies** for later viewing  
+- 🔄 **Randomized Movie Order** per user to ensure fair exposure  
+- 🎯 **Personalized Recommendations** from Flask backend (SVD, KNN, fallback models)  
+- 💾 **Persistent Storage** using Firestore and LocalStorage  
+- 🔁 **Cold Start Handling** using popular/highest-rated fallback logic  
+- 🔒 **Secure Firebase Key Handling** via base64-encoded env variable  
+- 🌐 **Live Deployment** with Vercel (frontend) & Render (backend)  
 
 ---
 
 ## 🧠 Technologies Used
 
-
 ### Frontend:
 - React (Context API, Hooks)
 - Tailwind CSS
 - Lucide-react for icons
+- React Router DOM
 
-### Backend / Services:
+### Backend:
+- Flask (Python)
+- Movie Recommendation Engine (SVD, KNN, Fallback models)
+- Render Deployment
+
+### Services:
 - Firebase Authentication (Google Sign-In)
 - Firebase Firestore for user-specific data
-- LocalStorage for client-side persistence
+- LocalStorage for client-side sync
 
 ---
 
 ## 📁 Project Structure
 
-src/ \
-│ \
-├── components/ \
-│ └── MovieCard.jsx           # Displays each movie with its poster, year, category, rating, bookmark toggle, and 5-star rating system \
-│ └── TrendingCard.jsx        # Displays trending movies in a special layout, highlighting visual appeal \
-│ └── Navbar.jsx              # Top navigation bar with logo, search functionality, and user profile/login icon \
-│ └── SidebarIcon.jsx         # Sidebar icons for navigating between pages like Home, Movies, TV Series, Bookmarked \
-│ └── ScrollToTop.jsx         # Scrolls to top automatically when a user changes routes \
-│ └── Login.jsx               # Handles Google Sign-In using Firebase Authentication \
-│ \
-├── Pages/ \
-│ └── Layout.jsx              # Common layout wrapper including navbar and sidebar for consistent structure \
-│ └── MainContent.jsx         # Displays all movies in shuffled order allowing users to rate and bookmark \
-│ └── Recommendation.jsx      # Personalized movie recommendation page based on user ratings \
-│ └── Bookmarked.jsx          # Displays list of movies that the user has bookmarked \
-│ └── Nopage.jsx              # 404 page for undefined routes \
-│ \
-├── Context/ \
-│ └── BookmarkContext.jsx     # Manages global movie state: bookmarks, ratings, shuffling, localStorage sync \
-│ └── AuthContext.jsx         # Manages global authentication state and user Firestore data \
-│ \
-├── firebase.js               # Firebase project configuration and app initialization (Auth + Firestore) \
-├── data.json                 # Static JSON dataset of movies with metadata like title, year, thumbnails, etc. \
-└── App.jsx                   # Main component setting up React Router, routes, and wrapping with providers \
-
-
+```
+src/
+├── components/
+│   ├── MovieCard.jsx          # Movie display with rating & bookmark
+│   ├── TrendingCard.jsx       # Highlighted cards for trending movies
+│   ├── Navbar.jsx             # Top bar with branding & auth
+│   ├── SidebarIcon.jsx        # Sidebar nav for route switching
+│   ├── ScrollToTop.jsx        # Scroll-to-top on route change
+│   └── Login.jsx              # Google Sign-In handler
+│
+├── Pages/
+│   ├── Layout.jsx             # Global wrapper with Navbar/Sidebar
+│   ├── MainContent.jsx        # Movie list page
+│   ├── Recommendation.jsx     # Fetched recommendation page (GET /recommendations)
+│   ├── Bookmarked.jsx         # Bookmarked movies and shows
+│   └── Nopage.jsx             # 404 route
+│
+├── Context/
+│   ├── BookmarkContext.jsx    # Bookmark/rating state & syncing logic
+│   └── AuthContext.jsx        # Auth state and Firestore syncing
+│
+├── firebase.js                # Firebase configuration
+├── data.json                  # Static movie dataset (~29 movies)
+└── App.jsx                    # Main routing logic
+```
 
 ---
 
 ## 📸 Screenshots
 
-| Home Page | Recommendation Page | Bookmarked Movie & TV series |
-|----------|------------|------------|
-| ![Home](./screenshots/home.png) | ![Recommendations](./screenshots/Recommendation.png) | ![Card](./screenshots/card.png) | 
+| Home Page | Recommendation Page | Bookmarked |
+|-----------|----------------------|------------|
+| ![Home](./screenshots/home.png) | ![Recommendations](./screenshots/Recommendation.png) | ![Card](./screenshots/card.png) |
 
 ---
 
@@ -74,50 +82,76 @@ src/ \
 
 ### Prerequisites:
 - Node.js v14+
-- Firebase project with Firestore and Authentication enabled
+- Firebase project with Firestore and Google Auth
+- Python 3.8+ and Flask installed
 
-### Setup Instructions:
+---
+
+### 🔧 Setup Instructions
 
 1. **Clone the repository**
 
+```bash
 git clone https://github.com/Rishabh763/Movie-Recommendation-System.git
 cd movie-recommender-app
+```
 
-2. **Install dependencies**
+2. **Frontend Setup**
 
 ```bash
 npm install
 ```
 
-3. **Firebase Setup**
-
-Create a Firebase project.
-Enable Google Sign-In in Authentication.
-Create a Firestore Database.
-Get your Firebase config and update firebase/firebase.js:
-
-```bash
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  ...
-};
+Create a `.env` file and store your Firebase config safely:
+```env
+VITE_FIREBASE_API_KEY=your_key
+VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
+# etc...
 ```
 
-3. **Run the development server**
+Run the development server:
 
 ```bash
 npm run dev
 ```
 
+3. **Backend Setup (Flask)**
+
+```bash
+cd backend/
+pip install -r requirements.txt
+```
+
+Create a `.env` file with:
+```env
+FIREBASE_KEY_B64=your_base64_encoded_service_account
+```
+
+Start the Flask server:
+```bash
+python app.py
+```
+
+---
+
+## 🌍 Deployment
+
+- **Frontend** hosted on [Vercel](https://vercel.com)  
+- **Backend** deployed via [Render](https://render.com)  
+- **Secure Firebase Key** is base64-encoded and added to Render environment
+
+---
+
 ## 🔄 Future Improvements
-- Add real-time recommendations using Flask backend or ML model
-- Search and filter functionality by genre/year/trending
-- Admin dashboard to manage movie data
-- User analytics dashboard (watch history, rating behavior)
+
+- 🔎 Add movie search & filters (genre/year)
+- 📈 Show analytics dashboard (top-rated, trends)
+- 🧪 Add unit tests and error boundaries
+- 🎛️ Admin panel for adding new movies
+
+---
 
 ## ✨ Credits
 
-Created by Rishabh Singh
-
-B.Tech CSE(ICB)  @D.J. Sanghvi College of Engineering
+Created by **Rishabh Singh**  
+B.Tech CSE(ICB) @ D.J. Sanghvi College of Engineering

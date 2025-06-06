@@ -53,7 +53,7 @@ function Recommendation() {
   }, [recommendedTitles, movies]);
 
   return (
-    <div className="p-4">
+    <div className="md:p-4">
       <div className="flex flex-wrap gap-4 md:flex-row items-start md:items-center justify-between">
         <h2 className="text-2xl md:text-4xl font-semibold text-white py-4">
           Recommendation
@@ -70,12 +70,12 @@ function Recommendation() {
             max="8"
             value={topK}
             onChange={(e) => setTopK(Number(e.target.value))}
-            className="w-64 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4"
+            className="w-full md:w-64 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4"
           />
 
           <div>
             <label htmlFor="model" className="text-white">
-              Model:
+              Model : &nbsp;&nbsp;
             </label>
             <select
               id="model"
@@ -90,7 +90,7 @@ function Recommendation() {
         </div>
       </div>
 
-      <div className="special-grid">
+      <div className="special-grid mt-4">
         {loading
           ? [...Array(topK)].map((_, index) => <SkeletonCard key={index} />)
           : recommendedMovies.map((movie, index) => (
