@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Home, Bookmark, Film, Tv } from "lucide-react";
+import { Home, Bookmark,Sparkles } from "lucide-react";
 import { useAuth } from "../Context/AuthContext";
 import LoginModal from "../Components/Login";
 import { Link } from "react-router-dom";
@@ -16,6 +16,12 @@ function Navbar() {
     setToggle(!toggle);
   };
 
+  const wandAnimation = {
+    scale: [1, 1.2, 1],
+    rotate: [0, 10, -10, 0],
+    transition: { repeat: Infinity, duration: 1.5, ease: "easeInOut" },
+  };
+
   return (
     <div className="sticky top-0 h-auto lg:h-screen py-4 md:p-4 z-40">
       <div className="bg-[#19213c] h-full  rounded-md px-3 py-2 md:px-6 md:py-4 flex lg:flex-col  justify-between items-center">
@@ -29,32 +35,16 @@ function Navbar() {
         </Link>
 
         {/* Nav Links */}
-        <div className=" flex flex-row lg:flex-col items-center gap-6 lg:mt-6">
+        <div className=" flex flex-row lg:flex-col items-center gap-4 lg:mt-6">
           <SidebarIcon to="/" Icon={Home} label="Home" />
           <SidebarIcon
             to="/Recommendations"
-            Icon={Wand}
+            Icon={Sparkles}
             label="Recommendations"
+            animate={wandAnimation}
           />
+
           <SidebarIcon to="/Bookmarked" Icon={Bookmark} label="Bookmarked" />
-
-          {/* <NavLink
-            to="/Movies"
-            className={({ isActive }) =>
-              `text-white ${isActive ? "opacity-100" : "opacity-50"}`
-            }
-          >
-            <Film />
-          </NavLink>
-
-          <NavLink
-            to="/TVSeries"
-            className={({ isActive }) =>
-              `text-white ${isActive ? "opacity-100" : "opacity-50"}`
-            }
-          >
-            <Tv />
-          </NavLink> */}
         </div>
 
         {/* User Avatar */}

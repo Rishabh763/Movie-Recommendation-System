@@ -14,13 +14,13 @@ function Bookmarked() {
   );
 
   return (
-    <div className="md:p-4">
-      <h2 className="text-2xl md:text-4xl font-semibold text-white py-4">
+    <div className="py-4 md:p-4">
+      <h2 className="text-2xl md:text-4xl font-semibold text-white py-4 mb-2">
         Bookmarked Movies
       </h2>
 
       {bookmarkedMovies.length === 0 ? (
-        <p className="text-gray-400">No bookmarked Movie.</p>
+        <p className="text-gray-400 ">No bookmarked Movie.</p>
       ) : (
         <div className="special-grid">
           <AnimatePresence>
@@ -31,7 +31,7 @@ function Bookmarked() {
         </div>
       )}
 
-      <h2 className="text-2xl md:text-4xl font-semibold text-white py-4">
+      <h2 className="text-2xl md:text-4xl font-semibold text-white py-4 mb-2">
         Bookmarked TV Series
       </h2>
 

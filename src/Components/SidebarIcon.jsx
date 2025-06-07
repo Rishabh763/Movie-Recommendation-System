@@ -1,26 +1,28 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { NavLink } from "react-router-dom";
 
-function SidebarIcon({ to, Icon, label }) {
+const SidebarIcon = ({ to, Icon, label, animate }) => {
   return (
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `group relative text-white transition-opacity flex items-center justify-center ${
-          isActive ? "opacity-100" : "opacity-60"
+        `group flex items-center justify-center p-1 md:p-2 rounded-md transition-colors ${
+          isActive ? "bg-white text-black" : "text-white hover:bg-gray-700"
         }`
       }
     >
-      <Icon />
-
-      {/* Tooltip label */}
-      {label && (
-        <div className="absolute left-[120%] opacity-100 top-1/2 -translate-y-1/2 bg-[#515d87] text-sm px-3 py-1 rounded-md whitespace-nowrap hidden lg:group-hover:block z-10">
-          {label}
-        </div>
+      {({ isActive }) => (
+        <motion.div
+          animate={!isActive && animate ? animate : {}}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
+          <Icon className="w-6 h-6" />
+        </motion.div>
       )}
     </NavLink>
   );
-}
+};
 
 export default SidebarIcon;
+

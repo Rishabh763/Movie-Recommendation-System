@@ -55,7 +55,7 @@ function MainContent() {
   const trendingMovies = movies.filter((movie) => movie.isTrending);
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full pb-4 md:p-0">
       
 
       <div className={`${!currentUser ? "pointer-events-none blur-sm" : ""}`}>

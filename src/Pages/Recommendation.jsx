@@ -2,32 +2,58 @@ import React, { useContext, useEffect, useState } from "react";
 import { BookmarkContext } from "../Context/BookmarkContext";
 import MovieCard from "../Components/MovieCard";
 import { useAuth } from "../Context/AuthContext";
-import { Loader2 } from "lucide-react";
 import SkeletonCard from "../Components/SkeletonCard";
 
 function Recommendation() {
   const { movies } = useContext(BookmarkContext);
   const { currentUser } = useAuth();
 
+  // Load model and topK from localStorage if available
+  const [model, setModel] = useState(localStorage.getItem("rec_model") || "cosine");
+  const [topK, setTopK] = useState(Number(localStorage.getItem("rec_topK")) || 4);
+
   const [recommendedTitles, setRecommendedTitles] = useState([]);
   const [recommendedMovies, setRecommendedMovies] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [model, setModel] = useState("cosine"); // default model
-  const [topK, setTopK] = useState(4); // default model
   const [error, setError] = useState("");
+
+  // Persist model & topK to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem("rec_model", model);
+  }, [model]);
+
+  useEffect(() => {
+    localStorage.setItem("rec_topK", topK.toString());
+  }, [topK]);
 
   const fetchRecommendations = async () => {
     if (!currentUser) return;
+
+    const cacheKey = `recs_${currentUser.uid}_${model}`;
+    const cached = localStorage.getItem(cacheKey);
+
+    if (cached) {
+      try {
+        const cachedData = JSON.parse(cached);
+        setRecommendedTitles(cachedData);
+        return;
+      } catch (e) {
+        console.error("Failed to parse cached recommendations:", e);
+      }
+    }
+
     setLoading(true);
     setError("");
+
     try {
       const response = await fetch(
-        `https://movie-recommendation-system-backend-m2xt.onrender.com/recommendations?uid=${currentUser.uid}&model=${model}&top=${topK}`
+        `https://movie-recommendation-system-backend-m2xt.onrender.com/recommendations?uid=${currentUser.uid}&model=${model}&top=8`
       );
       const data = await response.json();
 
       if (data.recommendations && data.recommendations.length > 0) {
         setRecommendedTitles(data.recommendations);
+        localStorage.setItem(cacheKey, JSON.stringify(data.recommendations));
       } else {
         setRecommendedTitles([]);
         setError("No recommendations found.");
@@ -40,20 +66,22 @@ function Recommendation() {
     }
   };
 
+  // Fetch when model or user changes
   useEffect(() => {
     fetchRecommendations();
-  }, [currentUser, model, topK]);
+  }, [currentUser, model]);
 
+  // Trim recommendations according to topK
   useEffect(() => {
     const matchedMovies = movies.filter((movie) =>
       recommendedTitles.includes(movie.title)
     );
 
-    setRecommendedMovies(matchedMovies);
-  }, [recommendedTitles, movies]);
+    setRecommendedMovies(matchedMovies.slice(0, topK));
+  }, [recommendedTitles, movies, topK]);
 
   return (
-    <div className="md:p-4">
+    <div className="py:4 md:p-4">
       <div className="flex flex-wrap gap-4 md:flex-row items-start md:items-center justify-between">
         <h2 className="text-2xl md:text-4xl font-semibold text-white py-4">
           Recommendation
@@ -103,12 +131,6 @@ function Recommendation() {
       {!loading && !error && recommendedMovies.length === 0 && (
         <p className="text-gray-400 py-2">No recommendations available.</p>
       )}
-
-      {/* <div className="special-grid">
-        {recommendedMovies.map((movie, index) => (
-          <MovieCard key={index} movie={movie} />
-        ))}
-      </div> */}
     </div>
   );
 }
