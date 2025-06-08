@@ -11,6 +11,7 @@ A personalized movie recommendation web application built using **React**, **Tai
 - 🎥 **Movie Catalog** loaded from JSON with responsive thumbnails  
 - ⭐ **5-Star Rating System** for each movie  
 - 🔖 **Bookmark Movies** for later viewing  
+- 🔎 **Add movie search & filters** (genre/year)
 - 🔄 **Randomized Movie Order** per user to ensure fair exposure  
 - 🎯 **Personalized Recommendations** from Flask backend (SVD, KNN, fallback models)  
 - 💾 **Persistent Storage** using Firestore and LocalStorage  
@@ -72,9 +73,18 @@ src/
 
 ## 📸 Screenshots
 
-| Home Page | Recommendation Page | Bookmarked |
-|-----------|----------------------|------------|
-| ![Home](./screenshots/home.png) | ![Recommendations](./screenshots/Recommendation.png) | ![Card](./screenshots/card.png) |
+| Home Page |
+|-----------------------|
+| ![Home](./screenshots/home.png) |
+
+|Recommendation Page |
+|----------------------|
+| ![Recommendations](./screenshots/Recommendation.png) |
+
+|  Bookmarked |
+|----------------------|
+|  ![Card](./screenshots/card.png) |
+
 
 ---
 
@@ -144,7 +154,6 @@ python app.py
 
 ## 🔄 Future Improvements
 
-- 🔎 Add movie search & filters (genre/year)
 - 📈 Show analytics dashboard (top-rated, trends)
 - 🧪 Add unit tests and error boundaries
 - 🎛️ Admin panel for adding new movies
