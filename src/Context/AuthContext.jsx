@@ -20,7 +20,7 @@ export const useAuth = () => useContext(AuthContext);
 
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
-const db = getFirestore(app); // 🔥 Firestore instance
+const db = getFirestore(app); 
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
