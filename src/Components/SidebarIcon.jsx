@@ -11,6 +11,7 @@ const SidebarIcon = ({ to, Icon, label, animate }) => {
           isActive ? "bg-white text-black" : "text-white hover:bg-gray-700"
         }`
       }
+      alt={label}
     >
       {({ isActive }) => (
         <motion.div

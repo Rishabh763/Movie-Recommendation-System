@@ -16,7 +16,11 @@ const MovieCard = ({ movie }) => {
   } = movie;
 
   const handleRating = (ratingValue) => {
-    rateMovie(title, ratingValue);
+    if (userRating === ratingValue) {
+      rateMovie(title, null); // Unrate
+    } else {
+      rateMovie(title, ratingValue); // Set new rating
+    }
   };
 
   return (
@@ -67,28 +71,15 @@ const MovieCard = ({ movie }) => {
             >
               <Star
                 size={20}
-                className={`cursor-pointer transition-colors ${
-                  userRating >= star ? "text-yellow-400" : "text-gray-500"
-                }`}
                 onClick={() => handleRating(star)}
-                fill={userRating >= star ? "currentColor" : "none"}
+                className={`cursor-pointer transition-all duration-300 ease-in-out ${
+                  userRating >= star
+                    ? "text-yellow-400 fill-yellow-400"
+                    : "text-gray-500 fill-transparent"
+                }`}
               />
             </motion.div>
           ))}
-
-          {userRating !== null && (
-            <motion.div
-              whileHover={{ scale: 1.2 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <Trash
-                size={18}
-                className="ml-2 text-red-400 cursor-pointer hover:text-red-300"
-                onClick={() => handleRating(null)}
-              />
-            </motion.div>
-          )}
         </div>
       </div>
 
@@ -96,6 +87,7 @@ const MovieCard = ({ movie }) => {
       <button
         className="absolute top-2 right-2 bg-slate-600/40 p-2 rounded-full"
         onClick={() => toggleBookmark(title)}
+        alt="icon-bookmark"
       >
         {isBookmarked ? (
           <img

@@ -8,8 +8,10 @@ import { BookmarkProvider } from "./Context/BookmarkContext";
 
 import Bookedmark from "./Pages/Bookedmark";
 import Nopage from "./Pages/Nopage";
-import ScrollToTop from "./Components/ScrollToTop"; 
+import Login from "./Components/Login";
+import ScrollToTop from "./Components/ScrollToTop";
 import Recommendation from "./Pages/Recommendation";
+import ProtectedRoute from "./Components/ProtectedRoute";
 
 function App() {
   return (
@@ -17,7 +19,16 @@ function App() {
       <Router>
         <ScrollToTop />
         <Routes>
-          <Route path="/" element={<Layout />}>
+          <Route path="/login" element={<Login />} />
+
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<MainContent />} />
             <Route path="Bookmarked" element={<Bookedmark />} />
             <Route path="Recommendations" element={<Recommendation />} />

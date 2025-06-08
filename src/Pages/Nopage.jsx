@@ -47,7 +47,7 @@ function Nopage() {
                     Oops! The page you're looking for seems to have vanished into thin
                     air.
                 </p>
-                <button className="rounded bg-black text-white px-4 py-3 hover:bg-black/90 transition-opacity">
+                <button className="rounded bg-black text-white px-4 py-3 hover:bg-black/90 transition-opacity" alt="Back_to_home">
                     <Link to="/">
                         Return to Home
                     </Link>
