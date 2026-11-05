@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MovieCard from "../Components/MovieCard";
 import SkeletonCard from "../Components/SkeletonCard";
 import { getGenres, searchMovies } from "../api";
@@ -59,6 +59,24 @@ function MainContent() {
     return () => controller.abort();
   }, [q, genre, sort, page]);
 
+  // Infinite scroll: load the next page when a sentinel below the grid comes within
+  // 600px of the viewport. The observer is re-created whenever loading/total change so
+  // it never fires while a page is already in flight.
+  const sentinelRef = useRef(null);
+  const hasMore = movies.length < total;
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || loading || error || !hasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) setPage((p) => p + 1);
+      },
+      { rootMargin: "600px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loading, error, hasMore]);
+
   const heading = q ? `${total.toLocaleString()} results for '${q}'` : genre ? `${genre} movies` : "Browse movies";
 
   return (
@@ -115,16 +133,9 @@ function MainContent() {
         <p className="text-gray-400 py-6">No movies match that search.</p>
       )}
 
-      {!loading && movies.length < total && (
-        <div className="flex justify-center mt-8">
-          <button
-            type="button"
-            onClick={() => setPage((p) => p + 1)}
-            className="px-6 py-2 rounded-lg bg-[#161D2F] text-white hover:bg-[#1f2942]"
-          >
-            Load more
-          </button>
-        </div>
+      <div ref={sentinelRef} aria-hidden="true" className="h-px" />
+      {!loading && !hasMore && movies.length > 0 && (
+        <p className="text-center text-gray-500 py-8">You've reached the end.</p>
       )}
     </div>
   );

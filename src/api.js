@@ -14,8 +14,9 @@ async function getJSON(path, { token, signal } = {}) {
   return data;
 }
 
-export const posterUrl = (tmdbId, size = "w342") =>
-  tmdbId ? `${API_BASE_URL}/poster/${tmdbId}?size=${size}` : null;
+// Keyed by MovieLens id: the backend resolves TMDB ids, TV miniseries and title search.
+export const posterUrl = (movieId, size = "w342") =>
+  `${API_BASE_URL}/poster/${movieId}?size=${size}`;
 
 export function searchMovies({ q = "", genre = "", sort = "popular", page = 1, pageSize = 24 }, signal) {
   const params = new URLSearchParams({ sort, page, pageSize });

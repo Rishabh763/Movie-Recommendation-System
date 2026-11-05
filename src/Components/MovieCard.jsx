@@ -7,8 +7,8 @@ import { posterUrl } from "../api";
 
 export function Poster({ movie, size = "w342", className = "" }) {
   const [failed, setFailed] = useState(false);
-  const src = posterUrl(movie.tmdbId, size);
-  if (!src || failed) {
+  const src = posterUrl(movie.id, size);
+  if (failed) {
     return (
       <div className={`grid place-items-center bg-[#161D2F] text-gray-500 ${className}`}>
         <Film className="w-10 h-10" strokeWidth={1} />
