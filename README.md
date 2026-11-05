@@ -1,155 +1,93 @@
-
 # 🎬 Movie Recommendation Web App
 
-A personalized movie recommendation web application built using **React**, **Tailwind CSS**, **Flask**, and **Firebase**. Users can sign in via Google, rate movies on a 5-star scale, bookmark favorites, and receive personalized recommendations from a deployed Flask backend that runs collaborative-filtering models over everyone's ratings.
+A full-stack movie recommender over the **MovieLens 32M** dataset. Sign in with Google, rate
+movies, and get personalised recommendations from models trained on 32 million ratings, with
+a "because you liked…" explanation and a predicted star rating for every pick.
+
+**Live:** https://movie-recommendation-system-alpha-nine.vercel.app ·
+**API + models:** [Movie-Recommendation-System-Backend](https://github.com/Rishabh763/Movie-Recommendation-System-Backend)
 
 ---
 
 ## 🚀 Features
 
-- 🔐 **Google Sign-In** with Firebase Authentication  
-- 🎥 **Movie Catalog** loaded from JSON with responsive thumbnails  
-- ⭐ **5-Star Rating System** for each movie  
-- 🔖 **Bookmark Movies** for later viewing  
-- 🔎 **Search & filters**: search by title, filter by type (Movie/TV) or age rating, sort by title or year
-- 🔄 **Randomized Movie Order** per user to ensure fair exposure  
-- 🎯 **Personalized Recommendations** from the Flask backend: user-user cosine similarity or truncated SVD, switchable in the UI  
-- 💾 **Persistent Storage** using Firestore and LocalStorage  
-- 🔁 **Cold Start Handling**: users with no ratings get the highest-rated titles  
-- 🔒 **Authenticated API**: every request carries a Firebase ID token that the backend verifies, so users can only fetch their own recommendations  
-- 🌐 **Live Deployment** with Vercel (frontend) & Render (backend)  
+- 🎥 **10,000-movie catalog** (the most-rated MovieLens titles) with TMDB posters and overviews
+- 🔎 **Search, genre filter and sorting** (popularity, rating, year, title), paginated server-side
+- ⭐ **Ratings and bookmarks** stored per user in Firestore
+- 🎯 **Personalised recommendations** from an implicit-feedback ALS model, computed for each user on request from their ratings
+- 💡 **Explanations**: each pick shows the movie you rated that it is most similar to, plus a predicted star rating from a biased matrix-factorisation model
+- 🧊 **Cold start**: new users see popular movies and an onboarding grid; with 1–3 ratings the model blends in genre preferences
+- 🎞️ **Movie pages** with overview and "More like this" (nearest neighbours in the learned item embedding)
+- 🔐 **Google Sign-In**; every API call carries a Firebase ID token the backend verifies
+
+## 📊 Model results
+
+Offline evaluation on a per-user temporal split (each user's latest 20% of ratings held out).
+Full table, methodology and tuning in the
+[backend README](https://github.com/Rishabh763/Movie-Recommendation-System-Backend#results).
 
 ---
 
-## 🧠 Technologies Used
+## 🧠 Tech stack
 
-### Frontend:
-- React (Context API, Hooks)
-- Tailwind CSS
-- Lucide-react for icons
-- React Router DOM
+| Layer | Tech |
+|---|---|
+| Frontend | React 19, React Router, Tailwind CSS 4, Framer Motion, Vite |
+| Backend | Flask, NumPy, pandas (serving); implicit, Numba, SciPy (training) |
+| Data | MovieLens 32M (ratings), TMDB API (posters, overviews) |
+| Auth and storage | Firebase Authentication (Google), Cloud Firestore |
+| Hosting | Vercel (frontend), Render (backend) |
 
-### Backend:
-- Flask (Python)
-- Collaborative filtering with pandas + scikit-learn (cosine similarity, TruncatedSVD)
-- Render Deployment
-
-### Services:
-- Firebase Authentication (Google Sign-In)
-- Firebase Firestore for user-specific data
-- LocalStorage for client-side sync
-
----
-
-## 📁 Project Structure
+## 📁 Project structure
 
 ```
 src/
-├── components/
-│   ├── MovieCard.jsx          # Movie display with rating & bookmark
-│   ├── TrendingCard.jsx       # Highlighted cards for trending movies
-│   ├── Navbar.jsx             # Top bar with branding & auth
-│   ├── SidebarIcon.jsx        # Sidebar nav for route switching
-│   ├── ScrollToTop.jsx        # Scroll-to-top on route change
-│   └── Login.jsx              # Google Sign-In handler
-│
-├── Pages/
-│   ├── Layout.jsx             # Global wrapper with Navbar/Sidebar
-│   ├── MainContent.jsx        # Movie list page
-│   ├── Recommendation.jsx     # Fetched recommendation page (GET /recommendations)
-│   ├── Bookmarked.jsx         # Bookmarked movies and shows
-│   └── Nopage.jsx             # 404 route
-│
+├── api.js                     # Backend client: catalog, movie details, posters, recommendations
 ├── Context/
-│   ├── BookmarkContext.jsx    # Bookmark/rating state & syncing logic
-│   └── AuthContext.jsx        # Auth state and Firestore syncing
-│
-├── firebase.js                # Firebase configuration
-├── data.json                  # Static movie dataset (~29 movies)
-└── App.jsx                    # Main routing logic
+│   ├── AuthContext.jsx        # Google sign-in / sign-out
+│   └── LibraryContext.jsx     # The user's ratings and bookmarks (Firestore, atomic field updates)
+├── Components/
+│   ├── MovieCard.jsx          # Poster card + Poster, StarRating, BookmarkButton
+│   ├── Navbar.jsx, SidebarIcon.jsx, SkeletonCard.jsx, Login.jsx, ProtectedRoute.jsx, ScrollToTop.jsx
+├── Pages/
+│   ├── MainContent.jsx        # Browse: search, genre, sort, load more
+│   ├── Recommendation.jsx     # Recommendations, strategy note, onboarding grid
+│   ├── MovieDetail.jsx        # Overview, your rating, similar movies
+│   ├── Bookedmark.jsx         # Bookmarked movies
+│   ├── Layout.jsx             # Shell + TMDB / MovieLens attribution
+│   └── Nopage.jsx
+└── App.jsx                    # Routes
 ```
 
----
-
-## 📸 Screenshots
-
-| Home Page |
-|-----------------------|
-| ![Home](./screenshots/home.png) |
-
-|Recommendation Page |
-|----------------------|
-| ![Recommendations](./screenshots/Recommendation.png) |
-
-|  Bookmarked |
-|----------------------|
-|  ![Card](./screenshots/card.png) |
-
-
----
-
-## 🛠️ Installation
-
-### Prerequisites:
-- Node.js v14+
-- Firebase project with Firestore and Google Auth
-- Python 3.8+ and Flask installed
-
----
-
-### 🔧 Setup Instructions
-
-1. **Clone the repository**
+## 🛠️ Run locally
 
 ```bash
 git clone https://github.com/Rishabh763/Movie-Recommendation-System.git
 cd Movie-Recommendation-System
-```
-
-2. **Frontend Setup**
-
-```bash
 npm install
 ```
 
-Create a `.env` file and store your Firebase config safely:
+Create `.env`:
+
 ```env
-VITE_FIREBASE_API_KEY=your_key
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-# etc...
-# Optional: point at a local backend instead of the deployed one
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+VITE_FIREBASE_MEASUREMENT_ID=...
+# Optional: use a local backend instead of the deployed one
 VITE_API_BASE_URL=http://localhost:5000
 ```
-
-Run the development server:
 
 ```bash
 npm run dev
 ```
 
-3. **Backend Setup (Flask)**
+## 🙏 Credits
 
-The API lives in a separate repo: [Movie-Recommendation-System-Backend](https://github.com/Rishabh763/Movie-Recommendation-System-Backend). Its README covers setup, environment variables and the API.
+Built by **Rishabh Singh**.
 
----
-
-## 🌍 Deployment
-
-- **Frontend** hosted on [Vercel](https://vercel.com)  
-- **Backend** deployed via [Render](https://render.com)  
-- **Secure Firebase Key** is base64-encoded and added to Render environment
-
----
-
-## 🔄 Future Improvements
-
-- 📈 Show analytics dashboard (top-rated, trends)
-- 🧪 Frontend tests and error boundaries (backend API tests exist in the backend repo)
-- 🎛️ Admin panel for adding new movies
-
----
-
-## ✨ Credits
-
-Created by **Rishabh Singh**  
-B.Tech CSE(ICB) @ D.J. Sanghvi College of Engineering
+- Ratings: F. Maxwell Harper and Joseph A. Konstan. 2015. *The MovieLens Datasets: History and Context.* ACM TiiS 5(4). [GroupLens](https://grouplens.org/datasets/movielens/)
+- Posters and overviews: [TMDB](https://www.themoviedb.org). This product uses the TMDB API but is not endorsed or certified by TMDB.
