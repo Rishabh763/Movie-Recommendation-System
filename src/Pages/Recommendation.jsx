@@ -1,193 +1,136 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { BookmarkContext } from "../Context/BookmarkContext";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { RefreshCw } from "lucide-react";
 import MovieCard from "../Components/MovieCard";
-import { useAuth } from "../Context/AuthContext";
 import SkeletonCard from "../Components/SkeletonCard";
+import { useAuth } from "../Context/AuthContext";
+import { useLibrary } from "../Context/LibraryContext";
+import { getRecommendations, searchMovies } from "../api";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  "https://movie-recommendation-system-backend-m2xt.onrender.com";
-const FETCH_COUNT = 8; // fetch the max once, slice to topK on the client
+const TOP_N = 24;
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const ONBOARDING_TARGET = 5;
 
-// A fingerprint of the user's ratings. If it changes, cached recommendations are stale.
-const ratingsSignature = (movies) =>
-  movies
-    .filter((m) => m.userRating)
-    .map((m) => `${m.id}:${m.userRating}`)
+// Fingerprint of the user's ratings: cached recommendations are stale once it changes.
+const ratingsSignature = (ratings) =>
+  Object.entries(ratings)
+    .map(([id, r]) => `${id}:${r}`)
     .sort()
     .join(",");
 
-// Accepts the current shape ([{id, title}]) and the old one ([title]) so the frontend
-// can be deployed before the backend.
-const normalizeRecs = (recs, movies) =>
-  recs
-    .map((r) =>
-      typeof r === "object" && r !== null
-        ? r.id
-        : movies.find((m) => m.title === r)?.id
-    )
-    .filter((id) => id !== undefined);
+const STRATEGY_TEXT = {
+  popular: "You haven't rated anything yet, so these are the most popular movies. Rate a few below to personalise them.",
+  hybrid: "Early picks from your first few ratings, blended with your favourite genres. They get sharper with every rating.",
+  implicit_als: "Personalised by a matrix-factorisation model trained on 32 million MovieLens ratings.",
+};
 
 function Recommendation() {
-  const { movies } = useContext(BookmarkContext);
   const { currentUser } = useAuth();
-
-  const [model, setModel] = useState(localStorage.getItem("rec_model") || "cosine");
-  const [topK, setTopK] = useState(Number(localStorage.getItem("rec_topK")) || 4);
-
-  const [recommendedIds, setRecommendedIds] = useState([]);
+  const { ratings, loaded } = useLibrary();
+  const [recs, setRecs] = useState([]);
+  const [strategy, setStrategy] = useState(null);
+  const [onboarding, setOnboarding] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Read through a ref so rating a movie on this page doesn't trigger a refetch while
-  // the Firestore write may still be in flight. The signature is checked on the next
-  // visit, model change, or Refresh click.
-  const moviesRef = useRef(movies);
-  moviesRef.current = movies;
-  const moviesReady = movies.length > 0;
+  const ratedCount = Object.keys(ratings).length;
+  // Read through a ref so rating a card here doesn't refetch while the write is in flight;
+  // the cache signature catches the change on the next visit or Refresh.
+  const ratingsRef = useRef(ratings);
+  ratingsRef.current = ratings;
 
-  useEffect(() => {
-    localStorage.setItem("rec_model", model);
-  }, [model]);
-
-  useEffect(() => {
-    localStorage.setItem("rec_topK", topK.toString());
-  }, [topK]);
-
-  const fetchRecommendations = useCallback(
-    async (forceRefresh) => {
+  const load = useCallback(
+    async (force) => {
       if (!currentUser) return;
+      const cacheKey = `recs_${currentUser.uid}`;
+      const signature = ratingsSignature(ratingsRef.current);
 
-      const cacheKey = `recs_${currentUser.uid}_${model}`;
-      const signature = ratingsSignature(moviesRef.current);
-
-      if (!forceRefresh) {
+      if (!force) {
         try {
           const cached = JSON.parse(localStorage.getItem(cacheKey));
-          const fresh =
-            cached &&
-            Array.isArray(cached.ids) &&
-            cached.signature === signature &&
-            Date.now() - cached.savedAt < CACHE_TTL_MS;
-          if (fresh) {
-            setRecommendedIds(cached.ids);
+          if (cached && cached.signature === signature && Date.now() - cached.savedAt < CACHE_TTL_MS) {
+            setRecs(cached.recs);
+            setStrategy(cached.strategy);
             setError("");
             return;
           }
         } catch {
-          // Corrupt or old-format cache entry: ignore and refetch.
+          // Corrupt or old-format entry: refetch.
         }
       }
 
       setLoading(true);
       setError("");
-
       try {
         const token = await currentUser.getIdToken();
-        const response = await fetch(
-          `${API_BASE_URL}/recommendations?model=${model}&top=${FETCH_COUNT}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+        const data = await getRecommendations(token, TOP_N);
+        setRecs(data.recommendations);
+        setStrategy(data.strategy);
+        localStorage.setItem(
+          cacheKey,
+          JSON.stringify({ recs: data.recommendations, strategy: data.strategy, signature, savedAt: Date.now() })
         );
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-          throw new Error(data.error || `Request failed (${response.status})`);
-        }
-
-        const ids = normalizeRecs(data.recommendations || [], moviesRef.current);
-        setRecommendedIds(ids);
-        if (ids.length > 0) {
-          localStorage.setItem(
-            cacheKey,
-            JSON.stringify({ ids, signature, savedAt: Date.now() })
-          );
-        } else {
-          setError("No recommendations found. Rate a few more movies.");
-        }
       } catch (err) {
         console.error("Failed to fetch recommendations:", err);
-        setRecommendedIds([]);
-        setError("Something went wrong while fetching recommendations.");
+        setError("Couldn't load recommendations. The server may be waking up; try Refresh in a minute.");
       } finally {
         setLoading(false);
       }
     },
-    [currentUser, model]
+    [currentUser]
   );
 
   useEffect(() => {
-    if (moviesReady) fetchRecommendations(false);
-  }, [fetchRecommendations, moviesReady]);
+    if (loaded) load(false);
+  }, [load, loaded]);
 
-  // Keep the backend's ranking order, then trim to topK.
-  const recommendedMovies = useMemo(() => {
-    const byId = new Map(movies.map((m) => [m.id, m]));
-    return recommendedIds
-      .map((id) => byId.get(id))
-      .filter(Boolean)
-      .slice(0, topK);
-  }, [recommendedIds, movies, topK]);
+  // Onboarding: popular movies to rate until the user has a handful of ratings.
+  useEffect(() => {
+    if (!loaded || ratedCount >= ONBOARDING_TARGET || onboarding.length) return;
+    searchMovies({ sort: "popular", pageSize: 18 })
+      .then((d) => setOnboarding(d.results))
+      .catch(() => {});
+  }, [loaded, ratedCount, onboarding.length]);
+
+  const unratedOnboarding = useMemo(
+    () => onboarding.filter((m) => !(String(m.id) in ratings)),
+    [onboarding, ratings]
+  );
 
   return (
-    <div className="py:4 md:p-4">
-      <div className="flex flex-wrap gap-4 md:flex-row items-start md:items-center justify-between">
-        <h2 className="text-2xl md:text-4xl font-semibold text-white py-4">
-          Recommendation
-        </h2>
-        <div className="flex flex-wrap items-center gap-4">
-          <label htmlFor="topK" className="text-sm font-medium">
-            No. of Movies (1–8): <span className="font-bold">{topK}</span>
-          </label>
-
-          <input
-            id="topK"
-            type="range"
-            min="1"
-            max="8"
-            value={topK}
-            onChange={(e) => setTopK(Number(e.target.value))}
-            className="w-full md:w-64 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4"
-          />
-
-          <div>
-            <label htmlFor="model" className="text-white">
-              Model : &nbsp;&nbsp;
-            </label>
-            <select
-              id="model"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="p-2 rounded bg-gray-800 text-white"
-            >
-              <option value="cosine">Cosine Similarity</option>
-              <option value="svd">SVD</option>
-            </select>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => fetchRecommendations(true)}
-            disabled={loading}
-            className="p-2 px-4 rounded bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-50"
-          >
-            Refresh
-          </button>
-        </div>
+    <div className="py-4 md:p-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h2 className="text-2xl md:text-4xl font-semibold text-white py-4">Recommended for you</h2>
+        <button
+          type="button"
+          onClick={() => load(true)}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#161D2F] text-white hover:bg-[#1f2942] disabled:opacity-50"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Refresh
+        </button>
       </div>
 
-      <div className="special-grid mt-4">
+      {strategy && !loading && <p className="text-gray-400 mb-6 max-w-3xl">{STRATEGY_TEXT[strategy]}</p>}
+      {error && <p className="text-red-400 py-2">{error}</p>}
+
+      <div className="poster-grid">
         {loading
-          ? [...Array(topK)].map((_, index) => <SkeletonCard key={index} />)
-          : recommendedMovies.map((movie) => (
+          ? [...Array(12)].map((_, i) => <SkeletonCard key={i} />)
+          : recs.map((movie) => <MovieCard key={movie.id} movie={movie} />)}
+      </div>
+
+      {loaded && ratedCount < ONBOARDING_TARGET && unratedOnboarding.length > 0 && (
+        <section className="mt-12">
+          <h3 className="text-xl md:text-2xl font-semibold text-white">
+            Rate a few you've seen ({ratedCount}/{ONBOARDING_TARGET})
+          </h3>
+          <p className="text-gray-400 mb-4">Then hit Refresh to see how your recommendations change.</p>
+          <div className="poster-grid">
+            {unratedOnboarding.map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
-      </div>
-
-      {!loading && error && <p className="text-red-500 py-2">{error}</p>}
-
-      {!loading && !error && recommendedMovies.length === 0 && (
-        <p className="text-gray-400 py-2">No recommendations available.</p>
+          </div>
+        </section>
       )}
     </div>
   );

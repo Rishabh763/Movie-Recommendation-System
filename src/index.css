@@ -112,6 +112,12 @@ select {
   grid-template-rows: min-content auto;
 }
 
+.poster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  gap: 1.25rem;
+}
+
 .special-grid{
   display: grid;
   grid-template-columns: repeat(auto-fill,minmax(min(100%,300px),1fr));

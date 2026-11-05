@@ -8,7 +8,7 @@ import {
 } from "firebase/auth";
 import app from "../firebase";
 
-// Auth only. Bookmarks and ratings live in BookmarkContext (single source of truth).
+// Auth only. Ratings and bookmarks live in LibraryContext (single source of truth).
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
