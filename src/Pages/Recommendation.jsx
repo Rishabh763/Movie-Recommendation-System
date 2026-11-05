@@ -1,23 +1,52 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { BookmarkContext } from "../Context/BookmarkContext";
 import MovieCard from "../Components/MovieCard";
 import { useAuth } from "../Context/AuthContext";
 import SkeletonCard from "../Components/SkeletonCard";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://movie-recommendation-system-backend-m2xt.onrender.com";
+const FETCH_COUNT = 8; // fetch the max once, slice to topK on the client
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+// A fingerprint of the user's ratings. If it changes, cached recommendations are stale.
+const ratingsSignature = (movies) =>
+  movies
+    .filter((m) => m.userRating)
+    .map((m) => `${m.id}:${m.userRating}`)
+    .sort()
+    .join(",");
+
+// Accepts the current shape ([{id, title}]) and the old one ([title]) so the frontend
+// can be deployed before the backend.
+const normalizeRecs = (recs, movies) =>
+  recs
+    .map((r) =>
+      typeof r === "object" && r !== null
+        ? r.id
+        : movies.find((m) => m.title === r)?.id
+    )
+    .filter((id) => id !== undefined);
+
 function Recommendation() {
   const { movies } = useContext(BookmarkContext);
   const { currentUser } = useAuth();
 
-  // Load model and topK from localStorage if available
   const [model, setModel] = useState(localStorage.getItem("rec_model") || "cosine");
   const [topK, setTopK] = useState(Number(localStorage.getItem("rec_topK")) || 4);
 
-  const [recommendedTitles, setRecommendedTitles] = useState([]);
-  const [recommendedMovies, setRecommendedMovies] = useState([]);
+  const [recommendedIds, setRecommendedIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Persist model & topK to localStorage when changed
+  // Read through a ref so rating a movie on this page doesn't trigger a refetch while
+  // the Firestore write may still be in flight. The signature is checked on the next
+  // visit, model change, or Refresh click.
+  const moviesRef = useRef(movies);
+  moviesRef.current = movies;
+  const moviesReady = movies.length > 0;
+
   useEffect(() => {
     localStorage.setItem("rec_model", model);
   }, [model]);
@@ -26,59 +55,79 @@ function Recommendation() {
     localStorage.setItem("rec_topK", topK.toString());
   }, [topK]);
 
-  const fetchRecommendations = async () => {
-    if (!currentUser) return;
+  const fetchRecommendations = useCallback(
+    async (forceRefresh) => {
+      if (!currentUser) return;
 
-    const cacheKey = `recs_${currentUser.uid}_${model}`;
-    const cached = localStorage.getItem(cacheKey);
+      const cacheKey = `recs_${currentUser.uid}_${model}`;
+      const signature = ratingsSignature(moviesRef.current);
 
-    if (cached) {
+      if (!forceRefresh) {
+        try {
+          const cached = JSON.parse(localStorage.getItem(cacheKey));
+          const fresh =
+            cached &&
+            Array.isArray(cached.ids) &&
+            cached.signature === signature &&
+            Date.now() - cached.savedAt < CACHE_TTL_MS;
+          if (fresh) {
+            setRecommendedIds(cached.ids);
+            setError("");
+            return;
+          }
+        } catch {
+          // Corrupt or old-format cache entry: ignore and refetch.
+        }
+      }
+
+      setLoading(true);
+      setError("");
+
       try {
-        const cachedData = JSON.parse(cached);
-        setRecommendedTitles(cachedData);
-        return;
-      } catch (e) {
-        console.error("Failed to parse cached recommendations:", e);
+        const token = await currentUser.getIdToken();
+        const response = await fetch(
+          `${API_BASE_URL}/recommendations?model=${model}&top=${FETCH_COUNT}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(data.error || `Request failed (${response.status})`);
+        }
+
+        const ids = normalizeRecs(data.recommendations || [], moviesRef.current);
+        setRecommendedIds(ids);
+        if (ids.length > 0) {
+          localStorage.setItem(
+            cacheKey,
+            JSON.stringify({ ids, signature, savedAt: Date.now() })
+          );
+        } else {
+          setError("No recommendations found. Rate a few more movies.");
+        }
+      } catch (err) {
+        console.error("Failed to fetch recommendations:", err);
+        setRecommendedIds([]);
+        setError("Something went wrong while fetching recommendations.");
+      } finally {
+        setLoading(false);
       }
-    }
+    },
+    [currentUser, model]
+  );
 
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch(
-        `https://movie-recommendation-system-backend-m2xt.onrender.com/recommendations?uid=${currentUser.uid}&model=${model}&top=8`
-      );
-      const data = await response.json();
-
-      if (data.recommendations && data.recommendations.length > 0) {
-        setRecommendedTitles(data.recommendations);
-        localStorage.setItem(cacheKey, JSON.stringify(data.recommendations));
-      } else {
-        setRecommendedTitles([]);
-        setError("No recommendations found.");
-      }
-    } catch (error) {
-      console.error("Failed to fetch recommendations:", error);
-      setError("Something went wrong while fetching recommendations.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch when model or user changes
   useEffect(() => {
-    fetchRecommendations();
-  }, [currentUser, model]);
+    if (moviesReady) fetchRecommendations(false);
+  }, [fetchRecommendations, moviesReady]);
 
-  // Trim recommendations according to topK
-  useEffect(() => {
-    const matchedMovies = movies.filter((movie) =>
-      recommendedTitles.includes(movie.title)
-    );
-
-    setRecommendedMovies(matchedMovies.slice(0, topK));
-  }, [recommendedTitles, movies, topK]);
+  // Keep the backend's ranking order, then trim to topK.
+  const recommendedMovies = useMemo(() => {
+    const byId = new Map(movies.map((m) => [m.id, m]));
+    return recommendedIds
+      .map((id) => byId.get(id))
+      .filter(Boolean)
+      .slice(0, topK);
+  }, [recommendedIds, movies, topK]);
 
   return (
     <div className="py:4 md:p-4">
@@ -115,14 +164,23 @@ function Recommendation() {
               <option value="svd">SVD</option>
             </select>
           </div>
+
+          <button
+            type="button"
+            onClick={() => fetchRecommendations(true)}
+            disabled={loading}
+            className="p-2 px-4 rounded bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-50"
+          >
+            Refresh
+          </button>
         </div>
       </div>
 
       <div className="special-grid mt-4">
         {loading
           ? [...Array(topK)].map((_, index) => <SkeletonCard key={index} />)
-          : recommendedMovies.map((movie, index) => (
-              <MovieCard key={index} movie={movie} />
+          : recommendedMovies.map((movie) => (
+              <MovieCard key={movie.id} movie={movie} />
             ))}
       </div>
 

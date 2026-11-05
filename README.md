@@ -1,7 +1,7 @@
 
 # 🎬 Movie Recommendation Web App
 
-A personalized movie recommendation web application built using **React**, **Tailwind CSS**, **Flask**, and **Firebase**. Users can sign in via Google, rate movies on a 5-star scale, bookmark favorites, and receive tailored recommendations powered by a deployed Flask backend using multiple recommendation models.
+A personalized movie recommendation web application built using **React**, **Tailwind CSS**, **Flask**, and **Firebase**. Users can sign in via Google, rate movies on a 5-star scale, bookmark favorites, and receive personalized recommendations from a deployed Flask backend that runs collaborative-filtering models over everyone's ratings.
 
 ---
 
@@ -11,12 +11,12 @@ A personalized movie recommendation web application built using **React**, **Tai
 - 🎥 **Movie Catalog** loaded from JSON with responsive thumbnails  
 - ⭐ **5-Star Rating System** for each movie  
 - 🔖 **Bookmark Movies** for later viewing  
-- 🔎 **Add movie search & filters** (genre/year)
+- 🔎 **Search & filters**: search by title, filter by type (Movie/TV) or age rating, sort by title or year
 - 🔄 **Randomized Movie Order** per user to ensure fair exposure  
-- 🎯 **Personalized Recommendations** from Flask backend (SVD, KNN, fallback models)  
+- 🎯 **Personalized Recommendations** from the Flask backend: user-user cosine similarity or truncated SVD, switchable in the UI  
 - 💾 **Persistent Storage** using Firestore and LocalStorage  
-- 🔁 **Cold Start Handling** using popular/highest-rated fallback logic  
-- 🔒 **Secure Firebase Key Handling** via base64-encoded env variable  
+- 🔁 **Cold Start Handling**: users with no ratings get the highest-rated titles  
+- 🔒 **Authenticated API**: every request carries a Firebase ID token that the backend verifies, so users can only fetch their own recommendations  
 - 🌐 **Live Deployment** with Vercel (frontend) & Render (backend)  
 
 ---
@@ -31,7 +31,7 @@ A personalized movie recommendation web application built using **React**, **Tai
 
 ### Backend:
 - Flask (Python)
-- Movie Recommendation Engine (SVD, KNN, Fallback models)
+- Collaborative filtering with pandas + scikit-learn (cosine similarity, TruncatedSVD)
 - Render Deployment
 
 ### Services:
@@ -103,7 +103,7 @@ src/
 
 ```bash
 git clone https://github.com/Rishabh763/Movie-Recommendation-System.git
-cd movie-recommender-app
+cd Movie-Recommendation-System
 ```
 
 2. **Frontend Setup**
@@ -117,6 +117,8 @@ Create a `.env` file and store your Firebase config safely:
 VITE_FIREBASE_API_KEY=your_key
 VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
 # etc...
+# Optional: point at a local backend instead of the deployed one
+VITE_API_BASE_URL=http://localhost:5000
 ```
 
 Run the development server:
@@ -127,20 +129,7 @@ npm run dev
 
 3. **Backend Setup (Flask)**
 
-```bash
-cd backend/
-pip install -r requirements.txt
-```
-
-Create a `.env` file with:
-```env
-FIREBASE_KEY_B64=your_base64_encoded_service_account
-```
-
-Start the Flask server:
-```bash
-python app.py
-```
+The API lives in a separate repo: [Movie-Recommendation-System-Backend](https://github.com/Rishabh763/Movie-Recommendation-System-Backend). Its README covers setup, environment variables and the API.
 
 ---
 
@@ -155,7 +144,7 @@ python app.py
 ## 🔄 Future Improvements
 
 - 📈 Show analytics dashboard (top-rated, trends)
-- 🧪 Add unit tests and error boundaries
+- 🧪 Frontend tests and error boundaries (backend API tests exist in the backend repo)
 - 🎛️ Admin panel for adding new movies
 
 ---

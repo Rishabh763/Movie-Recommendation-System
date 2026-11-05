@@ -6,26 +6,24 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  getFirestore,
-} from "firebase/firestore";
 import app from "../firebase";
 
+// Auth only. Bookmarks and ratings live in BookmarkContext (single source of truth).
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
-const db = getFirestore(app); 
+
+// Remove every localStorage entry cached for this user (movie list, recommendations).
+const clearUserCache = (uid) => {
+  Object.keys(localStorage)
+    .filter((key) => key.startsWith(`movies_${uid}`) || key.startsWith(`recs_${uid}`))
+    .forEach((key) => localStorage.removeItem(key));
+};
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
-  const [bookmarks, setBookmarks] = useState([]);
-  const [ratings, setRatings] = useState({});
   const [loading, setLoading] = useState(true);
 
   const signInWithGoogle = async () => {
@@ -37,88 +35,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-  if (currentUser) {
-    localStorage.removeItem(`movies_${currentUser.uid}`);
-    localStorage.removeItem(`movies_${currentUser.uid}_timestamp`);
-  }
-  setBookmarks([]);
-  setRatings({});
-  await signOut(auth);
-};
-
-
-  // 📥 Load user Firestore data after login
-  const fetchUserData = async (uid) => {
-    const userRef = doc(db, "users", uid);
-    const snap = await getDoc(userRef);
-
-    if (!snap.exists()) {
-      await setDoc(userRef, { bookmarks: [], ratings: {} });
-      setBookmarks([]);
-      setRatings({});
-    } else {
-      const data = snap.data();
-      setBookmarks(data.bookmarks || []);
-      setRatings(data.ratings || {});
-    }
-  };
-
-  const addBookmark = async (movieId) => {
-    if (!currentUser) return;
-    const uid = currentUser.uid;
-    const userRef = doc(db, "users", uid);
-    const updated = [...new Set([...bookmarks, movieId])];
-
-    await updateDoc(userRef, { bookmarks: updated });
-    setBookmarks(updated);
-  };
-
-  const removeBookmark = async (movieId) => {
-    if (!currentUser) return;
-    const uid = currentUser.uid;
-    const userRef = doc(db, "users", uid);
-    const updated = bookmarks.filter((id) => id !== movieId);
-
-    await updateDoc(userRef, { bookmarks: updated });
-    setBookmarks(updated);
-  };
-
-  const rateMovie = async (movieId, rating) => {
-    if (!currentUser) return;
-    const uid = currentUser.uid;
-    const userRef = doc(db, "users", uid);
-
-    await updateDoc(userRef, {
-      [`ratings.${movieId}`]: rating,
-    });
-
-    setRatings((prev) => ({
-      ...prev,
-      [movieId]: rating,
-    }));
+    if (currentUser) clearUserCache(currentUser.uid);
+    await signOut(auth);
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       setLoading(false);
-      if (user) {
-        await fetchUserData(user.uid);
-      }
     });
     return () => unsubscribe();
   }, []);
 
-  const value = {
-    currentUser,
-    signInWithGoogle,
-    logout,
-    bookmarks,
-    ratings,
-    addBookmark,
-    removeBookmark,
-    rateMovie,
-  };
+  const value = { currentUser, signInWithGoogle, logout };
 
   return (
     <AuthContext.Provider value={value}>

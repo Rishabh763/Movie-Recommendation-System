@@ -2,7 +2,15 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import moviesData from "../data.json";
 import { db } from "../firebase";
 import { useAuth } from "./AuthContext";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  deleteField,
+} from "firebase/firestore";
 
 export const BookmarkContext = createContext();
 
@@ -99,59 +107,59 @@ export const BookmarkProvider = ({ children }) => {
     fetchMovies();
   }, [currentUser]);
 
-  // Toggle bookmark
+  // Persist the current movie list for this user (cache used for 24h).
+  const cacheMovies = (list) => {
+    localStorage.setItem(`movies_${currentUser.uid}`, JSON.stringify(list));
+  };
+
+  // Toggle bookmark. arrayUnion/arrayRemove are atomic on the server, so two quick
+  // clicks (or two tabs) can't overwrite each other's changes.
   const toggleBookmark = async (title) => {
     if (!currentUser) {
       alert("Please log in to bookmark movies.");
       return;
     }
 
+    const target = movies.find((movie) => movie.title === title);
+    if (!target) return;
+    const nowBookmarked = !target.isBookmarked;
+
     const updated = movies.map((movie) =>
-      movie.title === title
-        ? { ...movie, isBookmarked: !movie.isBookmarked }
-        : movie
+      movie.id === target.id ? { ...movie, isBookmarked: nowBookmarked } : movie
     );
     setMovies(updated);
-    localStorage.setItem(`movies_${currentUser.uid}`, JSON.stringify(updated));
+    cacheMovies(updated);
 
-    const userDocRef = doc(db, "users", currentUser.uid);
-    const newBookmarks = updated.filter((m) => m.isBookmarked).map((m) => m.id);
     try {
-      await updateDoc(userDocRef, { bookmarks: newBookmarks });
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        bookmarks: nowBookmarked ? arrayUnion(target.id) : arrayRemove(target.id),
+      });
     } catch (err) {
       console.error("Error updating bookmarks:", err);
     }
   };
 
-  // Rate movie
+  // Rate movie (rating === null clears it). Writes only this movie's field instead of
+  // read-modify-writing the whole ratings map, which lost updates under fast clicks.
   const rateMovie = async (title, rating) => {
     if (!currentUser) {
       alert("Please log in to rate movies.");
       return;
     }
 
-    // 1. Update local state
+    const target = movies.find((movie) => movie.title === title);
+    if (!target) return;
+
     const updated = movies.map((movie) =>
-      movie.title === title ? { ...movie, userRating: rating } : movie
+      movie.id === target.id ? { ...movie, userRating: rating } : movie
     );
     setMovies(updated);
-    localStorage.setItem(`movies_${currentUser.uid}`, JSON.stringify(updated));
-
-    // 2. Update Firestore
-    const ratedMovie = updated.find((m) => m.title === title);
-    const userDocRef = doc(db, "users", currentUser.uid);
+    cacheMovies(updated);
 
     try {
-      const docSnap = await getDoc(userDocRef);
-      const oldRatings = docSnap.data().ratings || {};
-
-      if (rating === null) {
-        delete oldRatings[ratedMovie.id]; // remove if rating is null
-      } else {
-        oldRatings[ratedMovie.id] = rating;
-      }
-
-      await updateDoc(userDocRef, { ratings: oldRatings });
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        [`ratings.${target.id}`]: rating === null ? deleteField() : rating,
+      });
     } catch (err) {
       console.error("Error updating rating:", err);
     }
