@@ -3,11 +3,18 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import MovieCard, { BookmarkButton, Poster, StarRating } from "../Components/MovieCard";
 import { getMovie } from "../api";
+import { useLibrary } from "../Context/LibraryContext";
 
 function MovieDetail() {
   const { id } = useParams();
   const [movie, setMovie] = useState(null);
   const [error, setError] = useState("");
+  const { recordView, loaded } = useLibrary();
+
+  // Count the visit once the user's library has loaded (so the write targets their doc).
+  useEffect(() => {
+    if (loaded && movie && String(movie.id) === String(id)) recordView(movie.id);
+  }, [loaded, movie, id, recordView]);
 
   useEffect(() => {
     const controller = new AbortController();

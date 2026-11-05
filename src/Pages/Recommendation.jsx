@@ -10,22 +10,23 @@ const TOP_N = 24;
 const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
 const ONBOARDING_TARGET = 5;
 
-// Fingerprint of the user's ratings: cached recommendations are stale once it changes.
-const ratingsSignature = (ratings) =>
-  Object.entries(ratings)
-    .map(([id, r]) => `${id}:${r}`)
-    .sort()
-    .join(",");
+// Fingerprint of everything the model uses: cached recommendations are stale once it changes.
+const signalsSignature = ({ ratings, bookmarks, views }) =>
+  [
+    Object.entries(ratings).map(([id, r]) => `r${id}:${r}`).sort().join(","),
+    [...bookmarks].sort((a, b) => a - b).join(","),
+    Object.keys(views).sort().join(","),
+  ].join("|");
 
 const STRATEGY_TEXT = {
-  popular: "You haven't rated anything yet, so these are the most popular movies. Rate a few below to personalise them.",
-  hybrid: "Early picks from your first few ratings, blended with your favourite genres. They get sharper with every rating.",
-  implicit_als: "Personalised by a matrix-factorisation model trained on 32 million MovieLens ratings.",
+  popular: "You haven't rated, bookmarked or opened any movies yet, so these are the most popular ones. Rate a few below to personalise them.",
+  hybrid: "Early picks from your first few ratings, bookmarks and views, blended with your favourite genres. They sharpen as you go.",
+  implicit_als: "Personalised by a matrix-factorisation model trained on 32 million MovieLens ratings, weighting your ratings 70%, bookmarks 20% and movies you've opened 10%.",
 };
 
 function Recommendation() {
   const { currentUser } = useAuth();
-  const { ratings, loaded } = useLibrary();
+  const { ratings, bookmarks, views, loaded } = useLibrary();
   const [recs, setRecs] = useState([]);
   const [strategy, setStrategy] = useState(null);
   const [onboarding, setOnboarding] = useState([]);
@@ -35,14 +36,14 @@ function Recommendation() {
   const ratedCount = Object.keys(ratings).length;
   // Read through a ref so rating a card here doesn't refetch while the write is in flight;
   // the cache signature catches the change on the next visit or Refresh.
-  const ratingsRef = useRef(ratings);
-  ratingsRef.current = ratings;
+  const signalsRef = useRef({ ratings, bookmarks, views });
+  signalsRef.current = { ratings, bookmarks, views };
 
   const load = useCallback(
     async (force) => {
       if (!currentUser) return;
       const cacheKey = `recs_${currentUser.uid}`;
-      const signature = ratingsSignature(ratingsRef.current);
+      const signature = signalsSignature(signalsRef.current);
 
       if (!force) {
         try {

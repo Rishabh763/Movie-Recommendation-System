@@ -70,6 +70,12 @@ export function BookmarkButton({ movieId, className = "" }) {
   );
 }
 
+const REASON_TEXT = {
+  rated: "Because you liked",
+  bookmarked: "Because you bookmarked",
+  viewed: "Because you looked at",
+};
+
 const MovieCard = ({ movie }) => {
   return (
     <motion.div
@@ -105,7 +111,7 @@ const MovieCard = ({ movie }) => {
         </Link>
         {movie.because && (
           <p className="text-xs text-gray-400">
-            Because you liked{" "}
+            {REASON_TEXT[movie.because.reason] || "Because you liked"}{" "}
             <Link to={`/movie/${movie.because.id}`} className="text-gray-200 hover:underline">
               {movie.because.title}
             </Link>
