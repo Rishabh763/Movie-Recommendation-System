@@ -85,7 +85,7 @@ function MainContent() {
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder="Search 10,000 movies"
+        placeholder="Search 23,000+ movies"
         className="w-full lg:mt-12 p-3 rounded-lg bg-[#161D2F] text-white placeholder-gray-400 focus:outline-none"
       />
 

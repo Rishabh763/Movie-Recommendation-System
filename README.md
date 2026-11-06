@@ -11,7 +11,7 @@ a "because you liked…" explanation and a predicted star rating for every pick.
 
 ## 🚀 Features
 
-- 🎥 **10,000-movie catalog** (the most-rated MovieLens titles) with TMDB posters and overviews
+- 🎥 **23,350-movie catalog** (every MovieLens 32M title with at least 20 ratings) with TMDB posters and overviews
 - 🔎 **Search, genre filter and sorting** (popularity, rating, year, title), paginated server-side
 - ⭐ **Ratings and bookmarks** stored per user in Firestore
 - 🎯 **Personalised recommendations** from an implicit-feedback ALS model, computed for each user on request from their ratings
